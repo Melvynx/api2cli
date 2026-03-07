@@ -45,9 +45,9 @@ Always run `export PATH="$HOME/.local/bin:$PATH"` before using commands so `<app
 
 (repeat for each resource)
 
-## Global Flags
+## Important
 
-All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`
+Always use `--json` when calling commands. Table output wraps and is unreadable by AI.
 ```
 
 ## Rules
@@ -58,3 +58,4 @@ All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `-
 4. Keep description concise - list the key resources and trigger words
 5. Include actual flags from `--help` output, not guessed ones
 6. Always include the auth setup section
+7. All command examples must include `--json` flag

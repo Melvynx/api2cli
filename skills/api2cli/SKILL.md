@@ -91,9 +91,13 @@ All generated CLIs follow these exact patterns:
 <app>-cli auth set|show|remove|test
 ```
 
-Global flags: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`
+**Always use `--json` when calling CLI commands programmatically.** The table output is for humans only - it wraps and is unreadable by AI. `--json` returns structured data:
 
-JSON envelope: `{ ok: true, data: ..., meta: { total, page } }`
+```json
+{ "ok": true, "data": [...], "meta": { "total": 42 } }
+```
+
+Other flags: `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`
 
 Exit codes: 0 = success, 1 = API error, 2 = usage error
 
