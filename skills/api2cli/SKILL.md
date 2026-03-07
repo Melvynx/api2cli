@@ -60,6 +60,10 @@ api2cli link <app>
 <app>-cli <resource> list --json
 ```
 
+## Publishing
+
+To publish a generated CLI to the npm registry, use the publish-to-npm skill.
+
 ## Generated CLI Conventions
 
 All generated CLIs follow these exact patterns:
