@@ -15,7 +15,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ## Install AgentSkill
 
 ```bash
-npx skills-cli add {{GITHUB_REPO}}
+npx skills add {{GITHUB_REPO}}
 ```
 
 Or manually copy `skills/{{APP_CLI}}/SKILL.md` to `~/.claude/skills/{{APP_CLI}}/SKILL.md`.

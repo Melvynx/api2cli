@@ -205,8 +205,8 @@ cp -r skills/api2cli ~/.claude/skills/
 # OpenClaw
 cp -r skills/api2cli ~/.openclaw/workspace/skills/
 
-# Or use skills-cli
-npx skills-cli add api2cli
+# Or use skills
+npx skills add api2cli
 ```
 
 Once installed, just tell your agent:

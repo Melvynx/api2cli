@@ -7,7 +7,7 @@ The scaffold already includes `skills/<app>-cli/SKILL.md` with placeholders. Aft
 The skill lives inside the CLI repo at `skills/<app>-cli/SKILL.md`. This way when pushed to GitHub, anyone can install it:
 
 ```bash
-npx skills-cli add <github-user>/<app>-cli
+npx skills add <github-user>/<app>-cli
 ```
 
 ## What to update

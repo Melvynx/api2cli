@@ -86,7 +86,7 @@ See [references/skill-generation.md](references/skill-generation.md) for the tem
 
 The skill lives inside the repo so when pushed to GitHub, anyone can install it:
 ```bash
-npx skills-cli add <github-user>/<app>-cli
+npx skills add <github-user>/<app>-cli
 ```
 
 ## Generated CLI Conventions
