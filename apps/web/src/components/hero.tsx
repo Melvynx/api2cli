@@ -18,12 +18,12 @@ export function Hero() {
     <section className="relative overflow-hidden border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20">
       {/* Red glow behind text */}
       <div
-        className="pointer-events-none absolute left-1/2 top-[15%] -translate-x-1/2"
+        className="pointer-events-none absolute left-1/2 top-[10%] -translate-x-1/2"
         style={{
-          width: "600px",
-          height: "400px",
-          background: "radial-gradient(ellipse at center, rgba(213, 71, 71, 0.15) 0%, rgba(213, 71, 71, 0.08) 30%, rgba(213, 71, 71, 0.03) 50%, transparent 70%)",
-          filter: "blur(40px)",
+          width: "500px",
+          height: "300px",
+          background: "radial-gradient(ellipse at center, rgba(213, 71, 71, 0.35) 0%, rgba(213, 71, 71, 0.15) 40%, transparent 70%)",
+          filter: "blur(80px)",
         }}
       />
       {/* Dot grid background */}
