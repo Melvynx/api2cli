@@ -68,12 +68,11 @@ program.addCommand(draftsResource);
 npx api2cli bundle <app>
 npx api2cli link <app>
 export PATH="$HOME/.local/bin:$PATH"
-<app>-cli auth set "your-token"
-<app>-cli auth test
+<app>-cli --help
 <app>-cli <resource> list --json
 ```
 
-After `npx api2cli link`, always run `export PATH="$HOME/.local/bin:$PATH"` so `<app>-cli` is available in the current session. Do NOT run `source ~/.zshrc` - it fails in non-interactive shells.
+`api2cli link` prints the export command to run. Always run `export PATH="$HOME/.local/bin:$PATH"` right after linking so `<app>-cli` works directly. Do NOT use `source ~/.zshrc`.
 
 ### Step 5: Generate an AgentSkill
 
