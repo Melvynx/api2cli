@@ -6,6 +6,7 @@ import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { CategoryFilter } from "@/components/category-filter";
+import { CopyCommand } from "@/components/copy-command";
 
 export const revalidate = 60;
 
@@ -34,8 +35,15 @@ export default async function Home() {
             </div>
           </div>
 
+          {/* Create CLI command */}
+          <div className="mb-8 flex items-center gap-3">
+            <CopyCommand command="npx api2cli create my-api" />
+          </div>
+
           {/* Categories */}
           <CategoryFilter categories={CATEGORIES as unknown as { value: string; label: string; icon: string }[]} />
+
+          <div className="mt-8" />
 
           {allSkills.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-card/50 py-20 text-center">

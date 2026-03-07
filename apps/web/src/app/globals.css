@@ -154,33 +154,33 @@
 .aura::before {
   content: "";
   position: absolute;
-  top: -20%;
+  top: 5%;
   left: 50%;
   transform: translateX(-50%);
-  width: 140%;
-  height: 70%;
+  width: 90%;
+  height: 50%;
   background: radial-gradient(
     ellipse at center,
-    oklch(0.45 0.18 260 / 0.15) 0%,
-    oklch(0.40 0.15 250 / 0.08) 30%,
-    oklch(0.35 0.10 240 / 0.03) 55%,
+    oklch(0.50 0.22 255 / 0.22) 0%,
+    oklch(0.45 0.18 260 / 0.14) 25%,
+    oklch(0.40 0.14 250 / 0.07) 50%,
     transparent 75%
   );
-  filter: blur(80px);
+  filter: blur(90px);
 }
 
 .aura::after {
   content: "";
   position: absolute;
-  bottom: -10%;
-  left: 30%;
-  width: 60%;
-  height: 40%;
+  top: 15%;
+  left: 40%;
+  width: 40%;
+  height: 30%;
   background: radial-gradient(
     ellipse at center,
-    oklch(0.40 0.14 270 / 0.08) 0%,
-    oklch(0.35 0.10 260 / 0.04) 40%,
+    oklch(0.55 0.20 270 / 0.12) 0%,
+    oklch(0.45 0.16 265 / 0.06) 40%,
     transparent 70%
   );
-  filter: blur(100px);
+  filter: blur(70px);
 }
