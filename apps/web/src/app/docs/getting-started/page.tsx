@@ -112,28 +112,22 @@ typefully-cli drafts list --json`}</code>
       <h2>Or Install an Existing CLI</h2>
       <p>
         Before creating a new CLI, check the{" "}
-        <a href="/">marketplace</a>. Someone may have already built it:
+        <a href="/">registry</a>. Someone may have already built it:
       </p>
       <pre>
-        <code>npx api2cli install typefully</code>
+        <code>{`# Install from GitHub repo
+npx api2cli install owner/repo`}</code>
       </pre>
       <p>
-        One command. Downloads, builds, and links to your PATH instantly.
+        This clones the repo, installs dependencies, builds, links to your
+        PATH, and symlinks the AgentSkill to your coding agents. One command,
+        fully ready.
       </p>
 
       <h2>Manage Your Skills</h2>
       <pre>
         <code>{`# List installed skills
 npx skills list
-
-# Search for skills
-npx skills find api
-
-# Check for updates
-npx skills check
-
-# Update all skills
-npx skills update
 
 # Remove a skill
 npx skills remove api2cli`}</code>

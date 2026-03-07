@@ -33,7 +33,7 @@ const cards = [
   },
   {
     icon: "🏪",
-    title: "Marketplace",
+    title: "Registry",
     description: "Publish your CLI and install community CLIs.",
     href: "/docs/marketplace",
   },

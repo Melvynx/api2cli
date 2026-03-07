@@ -24,8 +24,8 @@ export default function Commands() {
             ["tokens", "List all configured tokens (masked)"],
             ["remove <app>", "Remove a CLI entirely"],
             ["doctor", "Check system requirements"],
-            ["install <app>", "Install from marketplace"],
-            ["publish <app>", "Publish to marketplace"],
+            ["install <repo>", "Install a CLI from GitHub (clone, build, link, symlink skill)"],
+            ["publish <app>", "Publish to registry (use web UI or API instead)"],
             ["update <app>", "Re-sync with API changes"],
           ].map(([cmd, desc]) => (
             <tr key={cmd}>

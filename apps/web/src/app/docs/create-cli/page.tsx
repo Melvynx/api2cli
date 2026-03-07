@@ -107,32 +107,63 @@ export default function CreateCli() {
         <code>{`# Build the CLI (generates a ~5KB JS bundle)
 api2cli bundle <app>
 
-# Add to your PATH
+# Add to your PATH (auto-updates .zshrc/.bashrc)
 api2cli link <app>
 
 # Verify it works
 <app>-cli --help`}</code>
       </pre>
-
-      <h2>Step 5: Publish to Marketplace</h2>
       <p>
-        Share your CLI with the community so others don&apos;t have to rebuild
-        it:
+        <code>api2cli link</code> creates a symlink in{" "}
+        <code>~/.local/bin/</code> and adds it to your shell profile
+        automatically. No manual PATH setup needed.
+      </p>
+
+      <h2>Step 5: Update the AgentSkill</h2>
+      <p>
+        The scaffold includes <code>skills/&lt;app&gt;-cli/SKILL.md</code>{" "}
+        with placeholder sections. After implementing resources, update it
+        with the actual commands and flags.
+      </p>
+      <p>
+        This file teaches AI agents how to use your CLI. When you push the
+        repo to GitHub, anyone can install the skill:
       </p>
       <pre>
-        <code>{`api2cli publish <app>`}</code>
+        <code>npx skills add owner/repo</code>
       </pre>
+
+      <h2>Step 6: Publish to the Registry</h2>
       <p>
-        Your CLI will appear on the{" "}
-        <a href="/docs/marketplace">marketplace</a> where anyone can install it
-        with one command.
+        Push your repo to GitHub, then publish it to the{" "}
+        <a href="/docs/marketplace">registry</a> so others can find and
+        install it:
       </p>
+      <ul>
+        <li>
+          <strong>Web:</strong> Click{" "}
+          <strong>&quot;+ Add my CLI&quot;</strong> on the{" "}
+          <a href="/">registry page</a> and paste your GitHub URL
+        </li>
+        <li>
+          <strong>API:</strong>{" "}
+          <code>curl -X POST api2cli.dev/api/publish-cli -d
+          {`'{"githubUrl":"owner/repo"}'`}</code>
+        </li>
+      </ul>
+      <p>
+        Others can then install your CLI with one command:
+      </p>
+      <pre>
+        <code>npx api2cli install owner/repo</code>
+      </pre>
 
       <div className="callout">
-        <div className="callout-title">Pro tip</div>
+        <div className="callout-title">What install does</div>
         <p className="!mb-0">
-          If the API has an OpenAPI spec, pass <code>--openapi</code> and
-          api2cli will auto-generate all resources for you.
+          Clones the repo, installs deps, builds, links to PATH, and
+          symlinks the skill to the user&apos;s agent (Claude Code, Cursor,
+          etc.). One command, fully ready.
         </p>
       </div>
     </div>

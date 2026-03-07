@@ -23,7 +23,7 @@ const NAV = [
     title: "Ecosystem",
     items: [
       { title: "Agent Integration", href: "/docs/agent-integration" },
-      { title: "Marketplace", href: "/docs/marketplace" },
+      { title: "Registry", href: "/docs/marketplace" },
     ],
   },
 ];
