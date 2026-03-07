@@ -36,9 +36,15 @@ jobs:
       - name: Update npm for OIDC
         run: npm install -g npm@latest
 
-      - name: Install dependencies
-        working-directory: packages/cli
-        run: bun install
+      - name: Install CLI dependencies
+        run: |
+          cd packages/cli
+          cp package.json /tmp/cli-package.json
+          cd /tmp
+          mkdir cli-build && cd cli-build
+          cp /tmp/cli-package.json package.json
+          bun install
+          cp -r node_modules $GITHUB_WORKSPACE/packages/cli/
 
       - name: Configure git
         run: |
