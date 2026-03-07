@@ -1,0 +1,9 @@
+{
+  "name": "api2cli-monorepo",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "bun run --filter './apps/*' dev",
+    "build": "bun run --filter './packages/*' build"
+  }
+}

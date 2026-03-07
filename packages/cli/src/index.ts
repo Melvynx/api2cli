@@ -1,0 +1,34 @@
+#!/usr/bin/env bun
+import { Command } from "commander";
+import { createCommand } from "./commands/create.js";
+import { installCommand } from "./commands/install.js";
+import { listCommand } from "./commands/list.js";
+import { bundleCommand } from "./commands/bundle.js";
+import { linkCommand } from "./commands/link.js";
+import { unlinkCommand } from "./commands/unlink.js";
+import { tokensCommand } from "./commands/tokens.js";
+import { removeCommand } from "./commands/remove.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { updateCommand } from "./commands/update.js";
+import { publishCommand } from "./commands/publish.js";
+
+const program = new Command();
+
+program
+  .name("api2cli")
+  .description("Turn any REST API into a standardized, agent-ready CLI")
+  .version("0.1.0");
+
+program.addCommand(createCommand);
+program.addCommand(installCommand);
+program.addCommand(listCommand);
+program.addCommand(bundleCommand);
+program.addCommand(linkCommand);
+program.addCommand(unlinkCommand);
+program.addCommand(tokensCommand);
+program.addCommand(removeCommand);
+program.addCommand(doctorCommand);
+program.addCommand(updateCommand);
+program.addCommand(publishCommand);
+
+program.parse();

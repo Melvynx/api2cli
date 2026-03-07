@@ -1,0 +1,50 @@
+---
+name: {{APP_NAME}}
+description: "CLI for {{APP_NAME}} API. Manage {{APP_NAME}} resources from the command line."
+---
+
+# {{APP_CLI}}
+
+```bash
+{{APP_CLI}} <resource> <action> [flags]
+```
+
+## Authentication
+
+```bash
+{{APP_CLI}} auth set "your-token"    # Save token
+{{APP_CLI}} auth show                # Show masked token
+{{APP_CLI}} auth test                # Verify token works
+{{APP_CLI}} auth remove              # Delete token
+```
+
+## Resources
+
+{{RESOURCES_HELP}}
+
+## Output Formats
+
+All commands support:
+- Default: human-readable text/tables
+- `--json`: structured JSON output `{ok, data, meta}`
+- `--format csv`: CSV output
+- `--format yaml`: YAML output
+
+## Examples
+
+```bash
+# List resources
+{{APP_CLI}} <resource> list --limit 20
+
+# Get by ID
+{{APP_CLI}} <resource> get <id>
+
+# Create
+{{APP_CLI}} <resource> create --name "example"
+
+# Update
+{{APP_CLI}} <resource> update <id> --name "updated"
+
+# Delete
+{{APP_CLI}} <resource> delete <id>
+```

@@ -1,0 +1,22 @@
+{
+  "name": "api2cli",
+  "version": "0.1.0",
+  "description": "Turn any REST API into a standardized, agent-ready CLI",
+  "type": "module",
+  "bin": {
+    "api2cli": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outfile dist/index.js --target bun",
+    "dev": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT",
+  "keywords": ["cli", "api", "rest", "agent", "skill", "mcp"]
+}
