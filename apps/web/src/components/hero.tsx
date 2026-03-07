@@ -15,17 +15,21 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20">
+    <section className="relative border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20">
       {/* Red glow behind text */}
       <div
-        className="pointer-events-none absolute left-1/2 top-[10%] -translate-x-1/2"
-        style={{
-          width: "500px",
-          height: "300px",
-          background: "radial-gradient(ellipse at center, rgba(213, 71, 71, 0.35) 0%, rgba(213, 71, 71, 0.15) 40%, transparent 70%)",
-          filter: "blur(80px)",
-        }}
-      />
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        style={{ top: "-10%" }}
+      >
+        <div
+          style={{
+            width: "700px",
+            height: "500px",
+            background: "radial-gradient(ellipse at center, rgba(213, 71, 71, 0.30) 0%, rgba(180, 50, 50, 0.12) 35%, transparent 65%)",
+            filter: "blur(100px)",
+          }}
+        />
+      </div>
       {/* Dot grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
