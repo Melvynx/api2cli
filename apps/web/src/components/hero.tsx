@@ -1,12 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
 const INSTALL_COMMAND = "npx skills add Melvynx/api2cli";
 
 export function Hero() {
   const [copied, setCopied] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y });
+  }, []);
 
   const copyCommand = () => {
     navigator.clipboard.writeText(INSTALL_COMMAND);
@@ -15,21 +25,25 @@ export function Hero() {
   };
 
   return (
-    <section className="relative border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Red glow behind text */}
+    <section
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      className="relative border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20"
+    >
+      {/* Red glow follows mouse */}
       <div
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-        style={{ top: "-10%" }}
-      >
-        <div
-          style={{
-            width: "700px",
-            height: "500px",
-            background: "radial-gradient(ellipse at center, rgba(213, 71, 71, 0.30) 0%, rgba(180, 50, 50, 0.12) 35%, transparent 65%)",
-            filter: "blur(100px)",
-          }}
-        />
-      </div>
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px circle at ${mousePos.x}% ${mousePos.y}%, rgba(213, 71, 71, 0.18) 0%, rgba(180, 50, 50, 0.06) 40%, transparent 65%)`,
+        }}
+      />
+      {/* Grain overlay */}
+      <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.06]">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
       {/* Dot grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
