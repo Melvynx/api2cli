@@ -53,11 +53,11 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="font-[family-name:var(--font-geist-pixel-square)] text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Any API.
+          <h1 className="font-[family-name:var(--font-geist-pixel-square)] text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            Superpower your agents
             <br />
             <span className="bg-gradient-to-r from-white to-[#D54747] bg-clip-text text-transparent">
-              One CLI pattern.
+              with tailor made CLI.
             </span>
           </h1>
 
