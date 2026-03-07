@@ -45,13 +45,13 @@ npx skills add https://github.com/Melvynx/api2cli/tree/dev/skills/api2cli
 npx skills add Melvynx/api2cli --list`}</code>
       </pre>
 
-      <h2>2. Use It</h2>
+      <h2>2. Ask Your Agent</h2>
       <p>
-        In your coding agent, just use the <code>/api2cli</code> command:
+        Just tell your agent what you need in plain English:
       </p>
 
       <pre>
-        <code>{`❯ /api2cli create for typefully api
+        <code>{`> Use api2cli to create CLI for typefully api
 
 ⏺ I'll create a CLI for the Typefully API. Let me start by discovering the API.
   → Finding API docs...
@@ -69,17 +69,17 @@ npx skills add Melvynx/api2cli --list`}</code>
       <div className="space-y-3">
         <div className="rounded-xl border border-border bg-card/60 px-4 py-3">
           <p className="!mb-0 font-mono text-sm">
-            /api2cli create for stripe api
+            Use api2cli to create CLI for stripe api
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card/60 px-4 py-3">
           <p className="!mb-0 font-mono text-sm">
-            /api2cli create for notion api
+            Use api2cli to create CLI for notion api
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card/60 px-4 py-3">
           <p className="!mb-0 font-mono text-sm">
-            /api2cli create for linear api
+            Use api2cli to create CLI for linear api
           </p>
         </div>
       </div>

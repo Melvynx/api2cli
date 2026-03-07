@@ -97,7 +97,7 @@ npx skills add Melvynx/api2cli -g -a claude-code`}</code>
         Once installed, just tell your agent in natural language:
       </p>
       <blockquote>
-        &ldquo;Create a CLI for the Typefully API&rdquo;
+        &ldquo;Use api2cli to create CLI for typefully api&rdquo;
       </blockquote>
       <p>
         The agent automatically discovers the API, generates resources, builds,

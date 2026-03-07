@@ -48,8 +48,8 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Turn any REST API into a standardized, agent-ready CLI in minutes.
-            Browse community CLIs or create your own.
+            Install the skill once. Tell your agent which API you need.
+            Get a standardized, agent-ready CLI in minutes.
           </p>
 
           {/* CTAs */}
