@@ -7,6 +7,7 @@
     "lint": "bunx @biomejs/biome check packages/",
     "lint:fix": "bunx @biomejs/biome check --write packages/",
     "test": "bun test",
-    "dev": "bun run --filter './apps/*' dev"
+    "dev": "bun run --filter './apps/*' dev",
+    "openbrewery": "bun run packages/openbrewery-cli/src/index.ts"
   }
 }
