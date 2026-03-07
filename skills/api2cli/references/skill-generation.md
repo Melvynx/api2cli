@@ -21,14 +21,12 @@ description: "Manage <APP_NAME> via CLI - <list key resources like: drafts, link
 
 Manage <APP_NAME> resources from the command line.
 
-Run all commands using `~/.local/bin/<app>-cli`.
+Always run `export PATH="$HOME/.local/bin:$PATH"` before using commands so `<app>-cli` is available.
 
 ## Authentication
 
-Set your API token before using any command:
-
 ```bash
-~/.local/bin/<app>-cli auth set "your-token"
+<app>-cli auth set "your-token"
 ```
 
 ## Resources
@@ -36,11 +34,11 @@ Set your API token before using any command:
 ### <resource1>
 
 ```bash
-~/.local/bin/<app>-cli <resource1> list [--limit <n>] [--json]
-~/.local/bin/<app>-cli <resource1> get <id> [--json]
-~/.local/bin/<app>-cli <resource1> create --name <name> [--json]
-~/.local/bin/<app>-cli <resource1> update <id> --name <name> [--json]
-~/.local/bin/<app>-cli <resource1> delete <id> [--json]
+<app>-cli <resource1> list [--limit <n>] [--json]
+<app>-cli <resource1> get <id> [--json]
+<app>-cli <resource1> create --name <name> [--json]
+<app>-cli <resource1> update <id> --name <name> [--json]
+<app>-cli <resource1> delete <id> [--json]
 ```
 
 ### <resource2>
@@ -54,9 +52,9 @@ All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `-
 
 ## Rules
 
-1. Run `~/.local/bin/<app>-cli --help` and each `<resource> --help` to get actual commands
+1. Run `<app>-cli --help` and each `<resource> --help` to get actual commands
 2. Only list resources that actually exist in the CLI
-3. Use `~/.local/bin/<app>-cli` as the command (not just `<app>-cli`) so it works without PATH
+3. Always include `export PATH="$HOME/.local/bin:$PATH"` instruction so the CLI is usable
 4. Keep description concise - list the key resources and trigger words
 5. Include actual flags from `--help` output, not guessed ones
 6. Always include the auth setup section
