@@ -1,13 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-black text-primary-foreground">
-            A2C
-          </div>
+          <Image src="/logo.svg" alt="api2cli" width={28} height={28} />
           <span className="font-[family-name:var(--font-geist-pixel-square)] text-sm font-semibold tracking-tight">
             api2cli
           </span>
