@@ -3,36 +3,50 @@ export default function GettingStarted() {
     <div>
       <h1>Getting Started</h1>
       <p>
-        Install the api2cli skill in your AI agent and let it handle everything.
-        No manual setup needed.
+        Install the api2cli skill in your AI agent. Tell it what API you need.
+        Done. Your agent handles everything.
       </p>
 
       <h2>1. Install the Skill</h2>
-      <p>One command, works with any agent:</p>
       <pre>
-        <code>{`# Install from GitHub
-npx skills add Melvynx/api2cli`}</code>
-      </pre>
-      <p>Other install methods:</p>
-      <pre>
-        <code>{`# Full GitHub URL
-npx skills add https://github.com/Melvynx/api2cli
-
-# Direct path to skill in repo
-npx skills add https://github.com/Melvynx/api2cli/tree/dev/skills/api2cli
-
-# Local path
-npx skills add ./my-local-skills`}</code>
+        <code>npx skills add Melvynx/api2cli</code>
       </pre>
       <p>
-        Works with any agent that supports{" "}
-        <a href="https://agentskills.io">AgentSkills</a>: Claude Code, Cursor,
-        Gemini CLI, GitHub Copilot, VS Code, OpenClaw, Goose, Junie, Amp, and
-        more.
+        That&apos;s it. The{" "}
+        <a href="https://github.com/vercel-labs/skills">
+          skills CLI
+        </a>{" "}
+        auto-detects your coding agents (Claude Code, Cursor, Codex, OpenClaw,
+        Gemini CLI, and{" "}
+        <a href="https://github.com/vercel-labs/skills#available-agents">
+          37+ more
+        </a>
+        ) and installs the skill to all of them.
       </p>
 
+      <h3>Options</h3>
+      <pre>
+        <code>{`# Install to specific agents only
+npx skills add Melvynx/api2cli -a claude-code -a cursor
+
+# Install globally (available across all projects)
+npx skills add Melvynx/api2cli -g
+
+# Install specific skill from the repo
+npx skills add Melvynx/api2cli --skill api2cli
+
+# Non-interactive (CI/CD friendly)
+npx skills add Melvynx/api2cli -g -a claude-code -y
+
+# Direct path to skill
+npx skills add https://github.com/Melvynx/api2cli/tree/dev/skills/api2cli
+
+# List available skills without installing
+npx skills add Melvynx/api2cli --list`}</code>
+      </pre>
+
       <h2>2. Tell Your Agent What You Need</h2>
-      <p>That&apos;s it. Just ask in natural language:</p>
+      <p>Just ask in natural language. Your agent reads the skill and does everything:</p>
 
       <div className="space-y-3">
         <div className="rounded-xl border border-border bg-card/60 px-4 py-3">
@@ -89,12 +103,30 @@ typefully-cli drafts list --json`}</code>
         One command. Downloads, builds, and links to your PATH instantly.
       </p>
 
+      <h2>Manage Your Skills</h2>
+      <pre>
+        <code>{`# List installed skills
+npx skills list
+
+# Search for skills
+npx skills find api
+
+# Check for updates
+npx skills check
+
+# Update all skills
+npx skills update
+
+# Remove a skill
+npx skills remove api2cli`}</code>
+      </pre>
+
       <div className="callout">
         <div className="callout-title">Want to go deeper?</div>
         <p className="!mb-0">
           Learn about the{" "}
           <a href="/docs/resources">resource pattern</a>,{" "}
-          <a href="/docs/commands">all commands</a>, or how to{" "}
+          <a href="/docs/commands">all CLI commands</a>, or how to{" "}
           <a href="/docs/marketplace">publish to the marketplace</a>.
         </p>
       </div>

@@ -3,16 +3,73 @@ export default function AgentIntegration() {
     <div>
       <h1>Agent Integration</h1>
       <p>
-        api2cli CLIs are designed to work with AI agents out of the box. Any
-        agent that supports{" "}
-        <a href="https://agentskills.io">AgentSkills</a> can discover, create,
-        and use CLIs automatically.
+        api2cli uses the open{" "}
+        <a href="https://agentskills.io">AgentSkills</a> standard. Install the
+        skill once and it works across 40+ coding agents.
       </p>
+
+      <h2>Install</h2>
+      <pre>
+        <code>npx skills add Melvynx/api2cli</code>
+      </pre>
+      <p>
+        The{" "}
+        <a href="https://github.com/vercel-labs/skills">skills CLI</a>{" "}
+        auto-detects your installed agents and sets everything up.
+      </p>
+
+      <h2>Supported Agents</h2>
+      <p>Works with any agent that supports AgentSkills:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>
+              <code>--agent</code> flag
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            ["Claude Code", "claude-code"],
+            ["Cursor", "cursor"],
+            ["Codex", "codex"],
+            ["OpenClaw", "openclaw"],
+            ["Gemini CLI", "gemini-cli"],
+            ["GitHub Copilot", "github-copilot"],
+            ["OpenCode", "opencode"],
+            ["Amp", "amp"],
+            ["Windsurf", "windsurf"],
+            ["Cline", "cline"],
+            ["Goose", "goose"],
+            ["OpenHands", "openhands"],
+            ["Junie", "junie"],
+            ["Roo Code", "roo"],
+            ["Kiro CLI", "kiro-cli"],
+            ["Pi", "pi"],
+          ].map(([name, flag]) => (
+            <tr key={flag}>
+              <td>{name}</td>
+              <td>
+                <code>{flag}</code>
+              </td>
+            </tr>
+          ))}
+          <tr>
+            <td colSpan={2}>
+              <a href="https://github.com/vercel-labs/skills#available-agents">
+                ...and 25+ more
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <h2>How It Works</h2>
       <p>
-        The repo includes a <code>SKILL.md</code> file following the AgentSkills
-        open standard. When an agent reads this skill, it learns:
+        When you install the skill, it places a <code>SKILL.md</code> file in
+        each agent&apos;s skill directory. This file teaches your agent:
       </p>
       <ul>
         <li>How to discover APIs and gather endpoint info</li>
@@ -23,21 +80,16 @@ export default function AgentIntegration() {
         <li>How to build, link, and test the CLI</li>
       </ul>
 
-      <h2>Install the Skill</h2>
-
-      <h3>Claude Code</h3>
+      <h2>Target Specific Agents</h2>
       <pre>
-        <code>{`cp -r skills/api2cli ~/.claude/skills/`}</code>
-      </pre>
+        <code>{`# Install only for Claude Code and Cursor
+npx skills add Melvynx/api2cli -a claude-code -a cursor
 
-      <h3>OpenClaw</h3>
-      <pre>
-        <code>{`cp -r skills/api2cli ~/.openclaw/workspace/skills/`}</code>
-      </pre>
+# Install globally (all projects)
+npx skills add Melvynx/api2cli -g
 
-      <h3>Using npx</h3>
-      <pre>
-        <code>{`npx skills-cli add api2cli`}</code>
+# Install globally for one agent
+npx skills add Melvynx/api2cli -g -a claude-code`}</code>
       </pre>
 
       <h2>Usage</h2>
@@ -48,41 +100,14 @@ export default function AgentIntegration() {
         &ldquo;Create a CLI for the Typefully API&rdquo;
       </blockquote>
       <p>
-        The agent will automatically:
+        The agent automatically discovers the API, generates resources, builds,
+        and links the CLI. Zero manual work.
       </p>
-      <ol>
-        <li>Search for the API docs</li>
-        <li>Identify base URL, auth type, and endpoints</li>
-        <li>
-          Run <code>api2cli create</code>
-        </li>
-        <li>Implement resources for each endpoint</li>
-        <li>Build, link, and test the CLI</li>
-      </ol>
-
-      <h2>Supported Agents</h2>
-      <p>Works with any agent/IDE that supports the AgentSkills standard:</p>
-      <ul>
-        <li>Claude Code</li>
-        <li>Cursor</li>
-        <li>Gemini CLI</li>
-        <li>GitHub Copilot</li>
-        <li>VS Code</li>
-        <li>OpenClaw</li>
-        <li>Goose / OpenHands / Junie</li>
-        <li>Amp / OpenCode / Letta</li>
-        <li>
-          <a href="https://agentskills.io">
-            Full list on agentskills.io
-          </a>
-        </li>
-      </ul>
 
       <h2>Why CLI for Agents?</h2>
       <p>
         CLIs are the most universal tool interface. Every AI agent can run shell
-        commands, but not every agent supports MCP servers, function calling, or
-        custom plugins. A standardized CLI means:
+        commands. A standardized CLI means:
       </p>
       <ul>
         <li>
@@ -96,10 +121,22 @@ export default function AgentIntegration() {
           <code>--json</code>
         </li>
         <li>
-          <strong>Deep help</strong>: agents can discover commands via{" "}
+          <strong>Deep help</strong>: agents discover commands via{" "}
           <code>--help</code>
         </li>
+        <li>
+          <strong>No MCP needed</strong>: works without servers or plugins
+        </li>
       </ul>
+
+      <div className="callout">
+        <div className="callout-title">Discover more skills</div>
+        <p className="!mb-0">
+          Browse the skills directory at{" "}
+          <a href="https://skills.sh">skills.sh</a> or search with{" "}
+          <code>npx skills find</code>.
+        </p>
+      </div>
     </div>
   );
 }
