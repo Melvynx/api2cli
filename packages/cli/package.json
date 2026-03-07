@@ -1,6 +1,6 @@
 {
   "name": "api2cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Turn any REST API into a standardized, agent-ready CLI",
   "type": "module",
   "bin": {
@@ -19,5 +19,15 @@
     "typescript": "^5.7.0"
   },
   "license": "MIT",
-  "keywords": ["cli", "api", "rest", "agent", "skill", "mcp", "agentskills"]
+  "keywords": ["cli", "api", "rest", "agent", "skill", "mcp", "agentskills"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Melvynx/api2cli.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/Melvynx/api2cli#readme",
+  "bugs": {
+    "url": "https://github.com/Melvynx/api2cli/issues"
+  },
+  "author": "Melvynx"
 }
