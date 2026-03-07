@@ -4,26 +4,26 @@ const cards = [
   {
     icon: "⚡",
     title: "Quick Start",
-    description: "Install api2cli and create your first CLI in 2 minutes.",
+    description: "Install the skill, tell your agent what you need. Done.",
     href: "/docs/getting-started",
+  },
+  {
+    icon: "🤖",
+    title: "Agent Integration",
+    description: "Works with Claude Code, Cursor, Gemini CLI, and 10+ agents.",
+    href: "/docs/agent-integration",
   },
   {
     icon: "🔨",
     title: "Create a CLI",
-    description: "Step-by-step guide to wrapping any REST API.",
+    description: "How the agent builds CLIs under the hood.",
     href: "/docs/create-cli",
   },
   {
     icon: "📦",
     title: "Add Resources",
-    description: "Learn the resource pattern for CRUD operations.",
+    description: "The resource pattern for CRUD operations.",
     href: "/docs/resources",
-  },
-  {
-    icon: "🤖",
-    title: "Agent Integration",
-    description: "Use your CLI with Claude Code, Cursor, and more.",
-    href: "/docs/agent-integration",
   },
   {
     icon: "📚",
@@ -44,9 +44,10 @@ export default function DocsIndex() {
     <div>
       <h1>Documentation</h1>
       <p>
-        Learn how to turn any REST API into a standardized, agent-ready CLI.
-        Every CLI you create follows the same patterns, so any AI agent that
-        learns one CLI knows them all.
+        Install the skill in your AI agent. Ask it to wrap any API. Your agent
+        handles everything: discovery, code generation, building, and linking.
+        Every CLI follows the same pattern, so agents learn once and scale to
+        every API.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
