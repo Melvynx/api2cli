@@ -1,16 +1,12 @@
+import pc from "picocolors";
 import { globalFlags } from "./config.js";
 
-/** JSON response envelope */
 interface JsonEnvelope {
   ok: true;
   data: unknown;
   meta?: { total?: number; page?: number };
 }
 
-/**
- * Output data in the configured format.
- * Respects globalFlags.json, globalFlags.format, and per-call overrides.
- */
 export function output(
   data: unknown,
   opts: { json?: boolean; format?: string; fields?: string[]; noHeader?: boolean } = {},
@@ -41,21 +37,51 @@ function printJson(data: unknown): void {
   console.log(JSON.stringify(envelope, null, 2));
 }
 
-function printText(
-  data: unknown,
-  fields?: string[],
-  noHeader?: boolean,
-): void {
+function printText(data: unknown, fields?: string[], noHeader?: boolean): void {
   if (Array.isArray(data)) {
-    printTable(data as Record<string, unknown>[], fields, noHeader);
-  } else if (typeof data === "object" && data !== null) {
-    for (const [k, v] of Object.entries(data)) {
-      const display = typeof v === "object" ? JSON.stringify(v) : String(v ?? "");
-      console.log(`${k}: ${display}`);
+    if (data.length === 0) {
+      console.log(pc.dim("(no results)"));
+      return;
     }
+    printTable(data as Record<string, unknown>[], fields, noHeader);
+    console.log(pc.dim(`\n${data.length} result${data.length === 1 ? "" : "s"}`));
+  } else if (typeof data === "object" && data !== null) {
+    printKeyValue(data as Record<string, unknown>);
   } else {
     console.log(String(data));
   }
+}
+
+function printKeyValue(obj: Record<string, unknown>): void {
+  const maxKey = Math.max(...Object.keys(obj).map((k) => k.length));
+  for (const [k, v] of Object.entries(obj)) {
+    const label = pc.bold(k.padEnd(maxKey));
+    const val = formatValue(v);
+    console.log(`  ${label}  ${val}`);
+  }
+}
+
+function formatValue(v: unknown): string {
+  if (v === null || v === undefined) return pc.dim("-");
+  if (typeof v === "boolean") return v ? pc.green("true") : pc.red("false");
+  if (typeof v === "number") return pc.cyan(String(v));
+  if (typeof v === "object") return pc.dim(JSON.stringify(v));
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return pc.dim(s);
+  if (/^https?:\/\//.test(s)) return pc.underline(pc.cyan(s));
+  return s;
+}
+
+function formatCell(v: unknown): string {
+  if (v === null || v === undefined) return pc.dim("-");
+  if (typeof v === "boolean") return v ? pc.green("yes") : pc.red("no");
+  if (typeof v === "number") return pc.cyan(String(v));
+  if (typeof v === "object") return pc.dim(JSON.stringify(v));
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+    return pc.dim(s.replace("T", " ").replace(/\.\d+Z$/, "Z"));
+  }
+  return s;
 }
 
 function printTable(
@@ -63,37 +89,38 @@ function printTable(
   fields?: string[],
   noHeader?: boolean,
 ): void {
-  if (rows.length === 0) {
-    console.log("(no results)");
-    return;
-  }
-
   const cols = fields ?? Object.keys(rows[0] ?? {});
   const widths = cols.map((col) => {
-    const values = rows.map((r) => String(r[col] ?? "").length);
+    const values = rows.map((r) => stripAnsi(formatCell(r[col])).length);
     return Math.min(Math.max(col.length, ...values), 40);
   });
 
   if (!noHeader) {
-    console.log(cols.map((c, i) => c.padEnd(widths[i] ?? 10)).join("  "));
-    console.log(widths.map((w) => "\u2500".repeat(w)).join("  "));
+    const header = cols.map((c, i) => pc.bold(pc.white(c.padEnd(widths[i] ?? 10)))).join("  ");
+    console.log(header);
+    console.log(pc.dim(widths.map((w) => "\u2500".repeat(w)).join("  ")));
   }
 
   for (const row of rows) {
     const line = cols.map((c, i) => {
-      const val = String(row[c] ?? "");
+      const formatted = formatCell(row[c]);
+      const raw = stripAnsi(formatted);
       const w = widths[i] ?? 10;
-      return val.length > w ? `${val.slice(0, w - 1)}\u2026` : val.padEnd(w);
+      if (raw.length > w) {
+        return formatted.slice(0, formatted.length - (raw.length - w) - 1) + pc.dim("\u2026");
+      }
+      const padding = w - raw.length;
+      return formatted + " ".repeat(padding > 0 ? padding : 0);
     });
     console.log(line.join("  "));
   }
 }
 
-function printCsv(
-  data: unknown,
-  fields?: string[],
-  noHeader?: boolean,
-): void {
+function stripAnsi(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+function printCsv(data: unknown, fields?: string[], noHeader?: boolean): void {
   if (!Array.isArray(data)) {
     console.log(JSON.stringify(data));
     return;

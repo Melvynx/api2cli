@@ -1,42 +1,33 @@
 ---
-name: {{APP_NAME}}
-description: "CLI for the {{APP_NAME}} API. Manage {{APP_NAME}} resources from the command line."
+name: {{APP_CLI}}
+description: "Manage {{APP_NAME}} via CLI - {{RESOURCES_LIST}}. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
 ---
 
 # {{APP_CLI}}
 
-```bash
-{{APP_CLI}} <resource> <action> [flags]
-```
+Run all commands using `~/.local/bin/{{APP_CLI}}`.
 
 ## Authentication
 
 ```bash
-{{APP_CLI}} auth set "your-token"    # Save token (chmod 600)
-{{APP_CLI}} auth show                # Show masked token
-{{APP_CLI}} auth show --raw          # Show full token
-{{APP_CLI}} auth test                # Verify token works
-{{APP_CLI}} auth remove              # Delete token
+~/.local/bin/{{APP_CLI}} auth set "your-token"
+~/.local/bin/{{APP_CLI}} auth show
+~/.local/bin/{{APP_CLI}} auth test
+~/.local/bin/{{APP_CLI}} auth remove
 ```
-
-## Global Flags
-
-All commands support:
-- `--json` - Structured JSON output `{ok, data, meta}`
-- `--format <fmt>` - Output format: text, json, csv, yaml
-- `--verbose` - Enable debug logging
-- `--no-color` - Disable colored output
-- `--no-header` - Omit table headers (for piping)
 
 ## Resources
 
 {{RESOURCES_HELP}}
 
-## Deep Help
+## Global Flags
 
-Every level has `--help`:
+All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`
+
+## Help
+
 ```bash
-{{APP_CLI}} --help                        # All resources
-{{APP_CLI}} <resource> --help             # All actions
-{{APP_CLI}} <resource> <action> --help    # All flags + examples
+~/.local/bin/{{APP_CLI}} --help
+~/.local/bin/{{APP_CLI}} <resource> --help
+~/.local/bin/{{APP_CLI}} <resource> <action> --help
 ```

@@ -75,6 +75,14 @@ npx api2cli link <app>
 
 Do NOT run `source ~/.zshrc` - it fails in non-interactive shells. Use `~/.local/bin/<app>-cli` directly.
 
+### Step 5: Generate an AgentSkill
+
+After the CLI works, ask the user: **"Create a skill for it so AI agents can use it?"**
+
+If yes, create a SKILL.md at `~/.claude/skills/<app>-cli/SKILL.md` (or the project's `.claude/skills/` if in a project context).
+
+See [references/skill-generation.md](references/skill-generation.md) for the template and rules.
+
 ## Generated CLI Conventions
 
 All generated CLIs follow these exact patterns:
