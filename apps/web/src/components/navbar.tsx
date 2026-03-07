@@ -15,7 +15,7 @@ export function Navbar() {
 
         <nav className="flex items-center gap-6">
           <Link
-            href="/#registry"
+            href="/"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             Registry

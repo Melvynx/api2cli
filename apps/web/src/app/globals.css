@@ -229,15 +229,12 @@
 
 .docs-content a {
   color: oklch(0.70 0.15 255);
-  text-decoration: underline;
-  text-decoration-color: oklch(0.70 0.15 255 / 0.4);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1.5px;
-  transition: text-decoration-color 0.15s;
+  text-decoration: none;
+  transition: opacity 0.15s;
 }
 
 .docs-content a:hover {
-  text-decoration-color: oklch(0.70 0.15 255);
+  opacity: 0.8;
 }
 
 .docs-content blockquote {
