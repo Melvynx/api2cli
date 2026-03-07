@@ -11,12 +11,13 @@
     "dev": "bun run src/index.ts"
   },
   "dependencies": {
-    "commander": "^13.0.0"
+    "commander": "^13.0.0",
+    "picocolors": "^1.1.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5.7.0"
   },
   "license": "MIT",
-  "keywords": ["cli", "api", "rest", "agent", "skill", "mcp"]
+  "keywords": ["cli", "api", "rest", "agent", "skill", "mcp", "agentskills"]
 }

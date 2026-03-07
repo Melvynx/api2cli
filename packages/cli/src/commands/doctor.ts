@@ -1,44 +1,48 @@
 import { Command } from "commander";
-import { PATHS } from "../lib/config.js";
 import { existsSync } from "fs";
+import pc from "picocolors";
+import { CLI_ROOT, TOKENS_DIR, TEMPLATE_DIR } from "../lib/config.js";
 
 export const doctorCommand = new Command("doctor")
   .description("Check system requirements and configuration")
+  .addHelpText("after", "\nExample:\n  api2cli doctor")
   .action(async () => {
-    console.log("api2cli doctor\n");
+    console.log(`\n${pc.bold("api2cli doctor")}\n`);
     let issues = 0;
 
-    // Check Bun
+    // Bun
     try {
-      const proc = Bun.spawn(["bun", "--version"], { stdout: "pipe" });
-      const version = await new Response(proc.stdout).text();
-      console.log(`  ✅ Bun ${version.trim()}`);
+      const proc = Bun.spawn(["bun", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const version = (await new Response(proc.stdout).text()).trim();
+      console.log(`  ${pc.green("✓")} Bun ${version}`);
     } catch {
-      console.log("  ❌ Bun not found. Install: https://bun.sh");
+      console.log(`  ${pc.red("✗")} Bun not found. Install: ${pc.cyan("https://bun.sh")}`);
       issues++;
     }
 
-    // Check ~/.cli directory
-    if (existsSync(PATHS.cliRoot)) {
-      console.log(`  ✅ CLI root: ${PATHS.cliRoot}`);
+    // CLI root
+    if (existsSync(CLI_ROOT)) {
+      console.log(`  ${pc.green("✓")} CLI root: ${pc.dim(CLI_ROOT)}`);
     } else {
-      console.log(`  ⚠️  CLI root not created yet: ${PATHS.cliRoot}`);
+      console.log(`  ${pc.yellow("~")} CLI root not yet created: ${pc.dim(CLI_ROOT)}`);
     }
 
-    // Check tokens dir
-    if (existsSync(PATHS.tokensDir)) {
-      console.log(`  ✅ Tokens dir: ${PATHS.tokensDir}`);
+    // Tokens dir
+    if (existsSync(TOKENS_DIR)) {
+      console.log(`  ${pc.green("✓")} Tokens dir: ${pc.dim(TOKENS_DIR)}`);
     } else {
-      console.log(`  ⚠️  Tokens dir not created yet: ${PATHS.tokensDir}`);
+      console.log(`  ${pc.yellow("~")} Tokens dir not yet created: ${pc.dim(TOKENS_DIR)}`);
     }
 
-    // Check template
-    if (existsSync(PATHS.templateDir)) {
-      console.log(`  ✅ Template found: ${PATHS.templateDir}`);
+    // Template
+    if (existsSync(TEMPLATE_DIR)) {
+      console.log(`  ${pc.green("✓")} Template: ${pc.dim(TEMPLATE_DIR)}`);
     } else {
-      console.log(`  ❌ Template not found: ${PATHS.templateDir}`);
+      console.log(`  ${pc.red("✗")} Template not found: ${pc.dim(TEMPLATE_DIR)}`);
       issues++;
     }
 
-    console.log(issues === 0 ? "\nAll good! 🎉" : `\n${issues} issue(s) found.`);
+    console.log(
+      issues === 0 ? `\n${pc.green("All good!")} 🎉\n` : `\n${pc.red(`${issues} issue(s) found.`)}\n`,
+    );
   });

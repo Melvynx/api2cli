@@ -19,16 +19,23 @@ program
   .description("Turn any REST API into a standardized, agent-ready CLI")
   .version("0.1.0");
 
+// Core
 program.addCommand(createCommand);
-program.addCommand(installCommand);
-program.addCommand(listCommand);
 program.addCommand(bundleCommand);
 program.addCommand(linkCommand);
 program.addCommand(unlinkCommand);
+program.addCommand(listCommand);
+
+// Auth
 program.addCommand(tokensCommand);
+
+// Lifecycle
 program.addCommand(removeCommand);
 program.addCommand(doctorCommand);
 program.addCommand(updateCommand);
+
+// Registry
+program.addCommand(installCommand);
 program.addCommand(publishCommand);
 
 program.parse();

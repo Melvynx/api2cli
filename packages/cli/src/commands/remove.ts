@@ -1,34 +1,35 @@
 import { Command } from "commander";
-import { getCliDir, getTokenFile } from "../lib/config.js";
-import { removeFromPath } from "../lib/bashrc.js";
 import { existsSync, rmSync } from "fs";
-import { join } from "path";
+import pc from "picocolors";
+import { getCliDir, getTokenFile, getDistDir } from "../lib/config.js";
+import { removeFromPath } from "../lib/shell.js";
 
 export const removeCommand = new Command("remove")
   .description("Remove a CLI entirely")
-  .argument("<app>", "Name of the CLI to remove")
+  .argument("<app>", "CLI to remove")
   .option("--keep-token", "Keep the auth token")
-  .action((app: string, options) => {
+  .addHelpText("after", "\nExamples:\n  api2cli remove typefully\n  api2cli remove typefully --keep-token")
+  .action((app: string, opts) => {
     const cliDir = getCliDir(app);
 
     if (!existsSync(cliDir)) {
-      console.error(`${app}-cli not found.`);
+      console.error(`${pc.red("✗")} ${app}-cli not found.`);
       process.exit(1);
     }
 
-    // Unlink from PATH
-    removeFromPath(app, join(cliDir, "dist"));
+    // Remove from PATH
+    removeFromPath(app, getDistDir(app));
 
-    // Remove CLI directory
+    // Remove directory
     rmSync(cliDir, { recursive: true, force: true });
-    console.log(`Removed ${app}-cli`);
+    console.log(`${pc.green("✓")} Removed ${pc.bold(`${app}-cli`)}`);
 
     // Remove token unless --keep-token
-    if (!options.keepToken) {
+    if (!opts.keepToken) {
       const tokenFile = getTokenFile(app);
       if (existsSync(tokenFile)) {
         rmSync(tokenFile);
-        console.log(`Removed token for ${app}-cli`);
+        console.log(`${pc.green("✓")} Removed token`);
       }
     }
   });

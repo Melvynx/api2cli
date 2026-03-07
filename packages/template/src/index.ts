@@ -1,21 +1,33 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
+import { globalFlags } from "./lib/config.js";
 import { authCommand } from "./commands/auth.js";
-
-// Import resources here
-// import { exampleResource } from "./resources/example.js";
+import { exampleResource } from "./resources/example.js";
 
 const program = new Command();
 
 program
   .name("{{APP_CLI}}")
-  .description("CLI for {{APP_NAME}} API")
-  .version("0.1.0");
+  .description("CLI for the {{APP_NAME}} API")
+  .version("0.1.0")
+  .option("--json", "Output as JSON", false)
+  .option("--format <fmt>", "Output format: text, json, csv, yaml", "text")
+  .option("--verbose", "Enable debug logging", false)
+  .option("--no-color", "Disable colored output")
+  .option("--no-header", "Omit table/csv headers (for piping)")
+  .hook("preAction", (_thisCmd, actionCmd) => {
+    const root = actionCmd.optsWithGlobals();
+    globalFlags.json = root.json ?? false;
+    globalFlags.format = root.format ?? "text";
+    globalFlags.verbose = root.verbose ?? false;
+    globalFlags.noColor = root.color === false;
+    globalFlags.noHeader = root.header === false;
+  });
 
-// Auth
+// Built-in commands
 program.addCommand(authCommand);
 
-// Resources - add your resources here
-// program.addCommand(exampleResource);
+// Resources (add yours here)
+program.addCommand(exampleResource);
 
 program.parse();

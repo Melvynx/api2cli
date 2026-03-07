@@ -1,30 +1,35 @@
 import { homedir } from "os";
-import { join } from "path";
+import { join, resolve } from "path";
 
-export const PATHS = {
-  /** Root directory for all generated CLIs */
-  cliRoot: join(homedir(), ".cli"),
-  /** Centralized token storage */
-  tokensDir: join(homedir(), ".config", "tokens"),
-  /** Template source (resolved at runtime) */
-  templateDir: join(import.meta.dir, "..", "..", "..", "template"),
-} as const;
+/** Root directory for all generated CLIs */
+export const CLI_ROOT = join(homedir(), ".cli");
 
-export const CLI_CONVENTIONS = {
-  /** Standard auth subcommands */
-  authCommands: ["set", "show", "remove", "test"] as const,
-  /** Standard CRUD actions */
-  crudActions: ["list", "get", "create", "update", "delete"] as const,
-  /** Default output format */
-  defaultFormat: "text" as const,
-  /** JSON envelope shape */
-  jsonEnvelope: { ok: true, data: null, meta: null },
-} as const;
+/** Centralized token storage directory */
+export const TOKENS_DIR = join(homedir(), ".config", "tokens");
 
-export function getCliDir(appName: string): string {
-  return join(PATHS.cliRoot, `${appName}-cli`);
+/** Template directory (relative to this package in the monorepo) */
+export const TEMPLATE_DIR = resolve(import.meta.dir, "..", "..", "..", "template");
+
+/** Placeholders used in the template that get replaced during create */
+export const PLACEHOLDERS = [
+  "{{APP_NAME}}",
+  "{{APP_CLI}}",
+  "{{BASE_URL}}",
+  "{{AUTH_TYPE}}",
+  "{{AUTH_HEADER}}",
+] as const;
+
+/** Get the installation directory for a CLI */
+export function getCliDir(app: string): string {
+  return join(CLI_ROOT, `${app}-cli`);
 }
 
-export function getTokenFile(appName: string): string {
-  return join(PATHS.tokensDir, `${appName}-cli.txt`);
+/** Get the token file path for a CLI */
+export function getTokenFile(app: string): string {
+  return join(TOKENS_DIR, `${app}-cli.txt`);
+}
+
+/** Get the dist directory for a CLI */
+export function getDistDir(app: string): string {
+  return join(getCliDir(app), "dist");
 }

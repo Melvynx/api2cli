@@ -1,67 +1,53 @@
 import { Command } from "commander";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "fs";
-import { dirname } from "path";
-import { getTokenPath, getClient } from "../lib/client.js";
+import { getToken, setToken, removeToken, hasToken, maskToken } from "../lib/auth.js";
+import { client } from "../lib/client.js";
+import { log } from "../lib/logger.js";
+import { handleError } from "../lib/errors.js";
 
-export const authCommand = new Command("auth")
-  .description("Manage API authentication");
+export const authCommand = new Command("auth").description("Manage API authentication");
 
 authCommand
   .command("set")
   .description("Save your API token")
   .argument("<token>", "Your API token")
+  .addHelpText("after", "\nExample:\n  {{APP_CLI}} auth set sk-abc123xyz")
   .action((token: string) => {
-    const tokenPath = getTokenPath();
-    mkdirSync(dirname(tokenPath), { recursive: true });
-    writeFileSync(tokenPath, token.trim());
-    console.log("✅ Token saved");
+    setToken(token);
+    log.success("Token saved securely");
   });
 
 authCommand
   .command("show")
-  .description("Display current token (masked)")
-  .option("--raw", "Show full token")
-  .action((options) => {
-    const tokenPath = getTokenPath();
-    if (!existsSync(tokenPath)) {
-      console.log("No token configured. Run: {{APP_CLI}} auth set <token>");
+  .description("Display current token (masked by default)")
+  .option("--raw", "Show the full unmasked token")
+  .addHelpText("after", "\nExample:\n  {{APP_CLI}} auth show\n  {{APP_CLI}} auth show --raw")
+  .action((opts: { raw?: boolean }) => {
+    if (!hasToken()) {
+      log.warn("No token configured. Run: {{APP_CLI}} auth set <token>");
       return;
     }
-    const token = readFileSync(tokenPath, "utf-8").trim();
-    if (options.raw) {
-      console.log(token);
-    } else {
-      const masked = token.length > 8
-        ? `${token.slice(0, 4)}...${token.slice(-4)}`
-        : "****";
-      console.log(`Token: ${masked}`);
-    }
+    const token = getToken();
+    console.log(opts.raw ? token : `Token: ${maskToken(token)}`);
   });
 
 authCommand
   .command("remove")
-  .description("Delete saved token")
+  .description("Delete the saved token")
+  .addHelpText("after", "\nExample:\n  {{APP_CLI}} auth remove")
   .action(() => {
-    const tokenPath = getTokenPath();
-    if (existsSync(tokenPath)) {
-      rmSync(tokenPath);
-      console.log("✅ Token removed");
-    } else {
-      console.log("No token to remove.");
-    }
+    removeToken();
+    log.success("Token removed");
   });
 
 authCommand
   .command("test")
-  .description("Verify token works by making a test API call")
+  .description("Verify your token works by making a test API call")
+  .addHelpText("after", "\nExample:\n  {{APP_CLI}} auth test")
   .action(async () => {
     try {
-      const client = getClient();
-      // Override this in your CLI to hit a real endpoint
-      const res = await client.get("/");
-      console.log("✅ Token is valid");
-    } catch (err: any) {
-      console.error(`❌ Auth failed: ${err.message}`);
-      process.exit(1);
+      await client.get("/");
+      log.success("Token is valid");
+    } catch (err) {
+      handleError(err);
     }
   });

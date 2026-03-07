@@ -3,7 +3,10 @@
   "private": true,
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
-    "dev": "bun run --filter './apps/*' dev",
-    "build": "bun run --filter './packages/*' build"
+    "build": "bun run --filter './packages/*' build",
+    "lint": "bunx @biomejs/biome check packages/",
+    "lint:fix": "bunx @biomejs/biome check --write packages/",
+    "test": "bun test",
+    "dev": "bun run --filter './apps/*' dev"
   }
 }

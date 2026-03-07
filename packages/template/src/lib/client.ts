@@ -1,71 +1,63 @@
-import { homedir } from "os";
-import { join } from "path";
-import { existsSync, readFileSync } from "fs";
-
-const APP_NAME = "{{APP_NAME}}";
-const BASE_URL = "{{BASE_URL}}";
-const AUTH_TYPE = "{{AUTH_TYPE}}"; // bearer | api-key | basic
-const AUTH_HEADER = "{{AUTH_HEADER}}"; // Authorization | X-Api-Key | etc.
+import { buildAuthHeaders } from "./auth.js";
+import { BASE_URL } from "./config.js";
+import { CliError } from "./errors.js";
+import { log } from "./logger.js";
 
 const MAX_RETRIES = 3;
-const RETRY_DELAYS = [1000, 2000, 4000]; // exponential backoff
+const RETRY_DELAYS = [1000, 2000, 4000];
+const TIMEOUT_MS = 30_000;
 
-export function getTokenPath(): string {
-  return join(homedir(), ".config", "tokens", `${APP_NAME}-cli.txt`);
+/** HTTP methods supported by the client */
+type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+/** Options for an API request */
+interface RequestOptions {
+  params?: Record<string, string>;
+  body?: Record<string, unknown>;
+  timeout?: number;
 }
 
-function getToken(): string {
-  const tokenPath = getTokenPath();
-  if (!existsSync(tokenPath)) {
-    console.error(`No token configured. Run: ${APP_NAME}-cli auth set <token>`);
-    process.exit(1);
-  }
-  return readFileSync(tokenPath, "utf-8").trim();
-}
-
-function buildAuthHeader(): Record<string, string> {
-  const token = getToken();
-  switch (AUTH_TYPE) {
-    case "bearer":
-      return { [AUTH_HEADER]: `Bearer ${token}` };
-    case "api-key":
-      return { [AUTH_HEADER]: token };
-    case "basic":
-      return { Authorization: `Basic ${Buffer.from(token).toString("base64")}` };
-    default:
-      return { [AUTH_HEADER]: token };
-  }
-}
-
-async function request(
-  method: string,
-  path: string,
-  options: { body?: any; params?: Record<string, string> } = {}
-): Promise<any> {
+/**
+ * Make an authenticated API request with retry logic.
+ * Retries on 429 (rate limit) and 5xx (server errors).
+ */
+async function request(method: Method, path: string, opts: RequestOptions = {}): Promise<unknown> {
   let url = `${BASE_URL}${path}`;
 
-  if (options.params) {
-    const qs = new URLSearchParams(options.params).toString();
-    url += `?${qs}`;
+  if (opts.params) {
+    const filtered = Object.fromEntries(
+      Object.entries(opts.params).filter(([, v]) => v !== undefined && v !== ""),
+    );
+    if (Object.keys(filtered).length > 0) {
+      url += `?${new URLSearchParams(filtered).toString()}`;
+    }
   }
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...buildAuthHeader(),
+    Accept: "application/json",
+    ...buildAuthHeaders(),
   };
 
-  const fetchOptions: RequestInit = { method, headers };
-  if (options.body) {
-    fetchOptions.body = JSON.stringify(options.body);
+  const fetchOpts: RequestInit = {
+    method,
+    headers,
+    signal: AbortSignal.timeout(opts.timeout ?? TIMEOUT_MS),
+  };
+
+  if (opts.body && method !== "GET") {
+    fetchOpts.body = JSON.stringify(opts.body);
   }
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const res = await fetch(url, fetchOptions);
+    log.debug(`${method} ${url}${attempt > 0 ? ` (retry ${attempt})` : ""}`);
 
-    // Rate limited - retry
-    if (res.status === 429 && attempt < MAX_RETRIES) {
-      const delay = RETRY_DELAYS[attempt] || 4000;
-      console.error(`Rate limited. Retrying in ${delay / 1000}s...`);
+    const res = await fetch(url, fetchOpts);
+
+    // Retry on rate limit or server error
+    if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES) {
+      const delay = RETRY_DELAYS[attempt] ?? 4000;
+      log.warn(`${res.status} - retrying in ${delay / 1000}s...`);
       await Bun.sleep(delay);
       continue;
     }
@@ -73,25 +65,43 @@ async function request(
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      const msg = data?.message || data?.error?.message || res.statusText;
-      throw new Error(`${res.status}: ${msg}`);
+      const msg =
+        (data as Record<string, unknown>)?.message ??
+        ((data as Record<string, Record<string, unknown>>)?.error?.message as string) ??
+        res.statusText;
+      throw new CliError(res.status, `${res.status}: ${String(msg)}`);
     }
 
     return data;
   }
+
+  throw new CliError(500, "Max retries exceeded");
 }
 
-export function getClient() {
-  return {
-    get: (path: string, params?: Record<string, string>) =>
-      request("GET", path, { params }),
-    post: (path: string, body?: any) =>
-      request("POST", path, { body }),
-    patch: (path: string, body?: any) =>
-      request("PATCH", path, { body }),
-    put: (path: string, body?: any) =>
-      request("PUT", path, { body }),
-    delete: (path: string) =>
-      request("DELETE", path),
-  };
-}
+/** Typed HTTP client with convenience methods */
+export const client = {
+  /** GET request with optional query params */
+  get(path: string, params?: Record<string, string>) {
+    return request("GET", path, { params });
+  },
+
+  /** POST request with JSON body */
+  post(path: string, body?: Record<string, unknown>) {
+    return request("POST", path, { body });
+  },
+
+  /** PATCH request with JSON body */
+  patch(path: string, body?: Record<string, unknown>) {
+    return request("PATCH", path, { body });
+  },
+
+  /** PUT request with JSON body */
+  put(path: string, body?: Record<string, unknown>) {
+    return request("PUT", path, { body });
+  },
+
+  /** DELETE request */
+  delete(path: string) {
+    return request("DELETE", path);
+  },
+};

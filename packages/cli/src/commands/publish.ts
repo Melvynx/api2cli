@@ -1,24 +1,22 @@
 import { Command } from "commander";
-import { getCliDir } from "../lib/config.js";
 import { existsSync } from "fs";
+import pc from "picocolors";
+import { getCliDir } from "../lib/config.js";
 
 export const publishCommand = new Command("publish")
   .description("Publish a CLI to the api2cli registry")
-  .argument("<app>", "Name of the CLI to publish")
+  .argument("<app>", "CLI to publish")
   .option("--scope <scope>", "npm scope", "@api2cli")
-  .action(async (app: string, options) => {
+  .addHelpText("after", "\nExample:\n  api2cli publish typefully")
+  .action(async (app: string, opts) => {
     const cliDir = getCliDir(app);
 
     if (!existsSync(cliDir)) {
-      console.error(`${app}-cli not found.`);
+      console.error(`${pc.red("✗")} ${app}-cli not found.`);
       process.exit(1);
     }
 
-    console.log(`Publishing ${app}-cli to registry...`);
-
-    // TODO: Package resources + config, publish to npm under @api2cli/<app>
-    // and register on api2cli.dev
-    console.log(`\nWill publish as: ${options.scope}/${app}`);
-    console.log("Registry: api2cli.dev");
-    console.log("\n🚧 Publishing not yet implemented. Coming soon.");
+    // TODO: Package resources + config, publish to npm + api2cli.dev
+    console.log(`Publishing ${pc.bold(`${app}-cli`)} as ${pc.cyan(`${opts.scope}/${app}`)}...`);
+    console.log(`\n${pc.yellow("🚧")} Publishing not yet implemented.`);
   });

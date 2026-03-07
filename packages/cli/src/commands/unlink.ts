@@ -1,12 +1,11 @@
 import { Command } from "commander";
-import { getCliDir } from "../lib/config.js";
-import { removeFromPath } from "../lib/bashrc.js";
-import { join } from "path";
+import { getDistDir } from "../lib/config.js";
+import { removeFromPath } from "../lib/shell.js";
 
 export const unlinkCommand = new Command("unlink")
   .description("Remove a CLI from your PATH")
-  .argument("<app>", "Name of the CLI to unlink")
+  .argument("<app>", "CLI to unlink")
+  .addHelpText("after", "\nExample:\n  api2cli unlink typefully")
   .action((app: string) => {
-    const cliDir = getCliDir(app);
-    removeFromPath(app, join(cliDir, "dist"));
+    removeFromPath(app, getDistDir(app));
   });
