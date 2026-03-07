@@ -1,0 +1,37 @@
+# {{APP_CLI}}
+
+CLI for the {{APP_NAME}} API. Built with [api2cli](https://github.com/Melvynx/api2cli).
+
+## Install
+
+```bash
+bun --version || curl -fsSL https://bun.sh/install | bash
+npx api2cli create {{APP_NAME}} --base-url {{BASE_URL}} --auth-type {{AUTH_TYPE}}
+npx api2cli bundle {{APP_NAME}}
+npx api2cli link {{APP_NAME}}
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+## Install AgentSkill
+
+```bash
+npx skills-cli add {{GITHUB_REPO}}
+```
+
+Or manually copy `skills/{{APP_CLI}}/SKILL.md` to `~/.claude/skills/{{APP_CLI}}/SKILL.md`.
+
+## Usage
+
+```bash
+{{APP_CLI}} auth set "your-token"
+{{APP_CLI}} auth test
+{{APP_CLI}} --help
+```
+
+## Resources
+
+{{RESOURCES_HELP}}
+
+## Global Flags
+
+All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`

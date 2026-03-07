@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, renameSync } from "fs";
 import { join } from "path";
 import pc from "picocolors";
 import { getCliDir } from "../lib/config.js";
@@ -61,18 +61,24 @@ Examples:
     await install.exited;
     console.log(`  ${pc.green("+")} Dependencies installed`);
 
-    // 5. Rename SKILL.md.template
-    const skillTemplate = join(cliDir, "SKILL.md.template");
-    const skillTarget = join(cliDir, "SKILL.md");
+    // 5. Move skill template into skills/<app>-cli/SKILL.md
+    const skillTemplate = join(cliDir, "skills", "SKILL.md.template");
     if (existsSync(skillTemplate)) {
-      const { renameSync } = require("fs");
-      renameSync(skillTemplate, skillTarget);
+      const skillDir = join(cliDir, "skills", `${app}-cli`);
+      mkdirSync(skillDir, { recursive: true });
+      renameSync(skillTemplate, join(skillDir, "SKILL.md"));
+    }
+
+    // 6. Rename README.md.template
+    const readmeTemplate = join(cliDir, "README.md.template");
+    if (existsSync(readmeTemplate)) {
+      renameSync(readmeTemplate, join(cliDir, "README.md"));
     }
 
     console.log(`\n${pc.green("✓")} Created ${pc.bold(`${app}-cli`)} at ${pc.dim(cliDir)}`);
     console.log(`\n${pc.bold("Next steps:")}`);
     console.log(`  1. Edit resources in ${pc.dim(`${cliDir}/src/resources/`)}`);
-    console.log(`  2. Build: ${pc.cyan(`api2cli bundle ${app}`)}`);
-    console.log(`  3. Link: ${pc.cyan(`api2cli link ${app}`)}`);
+    console.log(`  2. Build: ${pc.cyan(`npx api2cli bundle ${app}`)}`);
+    console.log(`  3. Link: ${pc.cyan(`npx api2cli link ${app}`)}`);
     console.log(`  4. Auth: ${pc.cyan(`${app}-cli auth set "your-token"`)}`);
   });

@@ -1,0 +1,38 @@
+---
+name: {{APP_CLI}}
+description: "Manage {{APP_NAME}} via CLI - {{RESOURCES_LIST}}. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
+---
+
+# {{APP_CLI}}
+
+## Setup
+
+Run once per session to make the CLI available:
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+If `{{APP_CLI}}` is not found, install and build it:
+```bash
+bun --version || curl -fsSL https://bun.sh/install | bash
+npx api2cli bundle {{APP_NAME}}
+npx api2cli link {{APP_NAME}}
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Always use `--json` flag when calling commands programmatically.
+
+## Authentication
+
+```bash
+{{APP_CLI}} auth set "your-token"
+{{APP_CLI}} auth test
+```
+
+## Resources
+
+{{RESOURCES_HELP}}
+
+## Global Flags
+
+All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`

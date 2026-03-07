@@ -74,13 +74,20 @@ export PATH="$HOME/.local/bin:$PATH"
 
 `api2cli link` prints the export command to run. Always run `export PATH="$HOME/.local/bin:$PATH"` right after linking so `<app>-cli` works directly. Do NOT use `source ~/.zshrc`.
 
-### Step 5: Generate an AgentSkill
+### Step 5: Update the AgentSkill and README
 
-After the CLI works, ask the user: **"Create a skill for it so AI agents can use it?"**
+The scaffold already includes `skills/<app>-cli/SKILL.md` and `README.md` with placeholder sections.
 
-If yes, create a SKILL.md at `~/.claude/skills/<app>-cli/SKILL.md` (or the project's `.claude/skills/` if in a project context).
+After implementing resources, update these files:
+1. Edit `~/.cli/<app>-cli/skills/<app>-cli/SKILL.md` - fill in `{{RESOURCES_LIST}}` and `{{RESOURCES_HELP}}` with actual resource names and commands
+2. Edit `~/.cli/<app>-cli/README.md` - fill in `{{RESOURCES_HELP}}` and `{{GITHUB_REPO}}`
 
 See [references/skill-generation.md](references/skill-generation.md) for the template and rules.
+
+The skill lives inside the repo so when pushed to GitHub, anyone can install it:
+```bash
+npx skills-cli add <github-user>/<app>-cli
+```
 
 ## Generated CLI Conventions
 

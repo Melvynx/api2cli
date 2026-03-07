@@ -1,61 +1,27 @@
 # Skill Generation for Generated CLIs
 
-After building and linking a CLI, generate an AgentSkill so AI agents can discover and use it.
+The scaffold already includes `skills/<app>-cli/SKILL.md` with placeholders. After implementing resources, update it.
 
-## Where to create
+## Location
 
-- Personal (all projects): `~/.claude/skills/<app>-cli/SKILL.md`
-- Project-specific: `.claude/skills/<app>-cli/SKILL.md`
-
-## Template
-
-Generate the SKILL.md by reading the CLI's actual `--help` output to list all resources and commands.
-
-```markdown
----
-name: <app>-cli
-description: "Manage <APP_NAME> via CLI - <list key resources like: drafts, links, accounts, etc.>. Use when user mentions '<APP_NAME>', '<resource names>', or wants to interact with the <APP_NAME> API."
----
-
-# <app>-cli
-
-Manage <APP_NAME> resources from the command line.
-
-Always run `export PATH="$HOME/.local/bin:$PATH"` before using commands so `<app>-cli` is available.
-
-## Authentication
+The skill lives inside the CLI repo at `skills/<app>-cli/SKILL.md`. This way when pushed to GitHub, anyone can install it:
 
 ```bash
-<app>-cli auth set "your-token"
+npx skills-cli add <github-user>/<app>-cli
 ```
 
-## Resources
+## What to update
 
-### <resource1>
-
-```bash
-<app>-cli <resource1> list [--limit <n>] [--json]
-<app>-cli <resource1> get <id> [--json]
-<app>-cli <resource1> create --name <name> [--json]
-<app>-cli <resource1> update <id> --name <name> [--json]
-<app>-cli <resource1> delete <id> [--json]
-```
-
-### <resource2>
-
-(repeat for each resource)
-
-## Important
-
-Always use `--json` when calling commands. Table output wraps and is unreadable by AI.
-```
+1. Replace `{{RESOURCES_LIST}}` with comma-separated resource names (e.g. "drafts, links, accounts")
+2. Replace `{{RESOURCES_HELP}}` with actual commands from `<app>-cli --help` and each `<resource> --help`
+3. In `README.md`, replace `{{GITHUB_REPO}}` with the actual GitHub repo path (e.g. `Melvynx/typefully-cli`)
 
 ## Rules
 
 1. Run `<app>-cli --help` and each `<resource> --help` to get actual commands
 2. Only list resources that actually exist in the CLI
-3. Always include `export PATH="$HOME/.local/bin:$PATH"` instruction so the CLI is usable
-4. Keep description concise - list the key resources and trigger words
-5. Include actual flags from `--help` output, not guessed ones
-6. Always include the auth setup section
-7. All command examples must include `--json` flag
+3. Keep description concise - list the key resources and trigger words
+4. Include actual flags from `--help` output, not guessed ones
+5. Always include the auth setup section
+6. All command examples must include `--json` flag
+7. Always use `--json` when calling commands - table output is for humans only
