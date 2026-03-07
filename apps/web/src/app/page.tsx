@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { CategoryFilter } from "@/components/category-filter";
 import { RegistrySearch } from "@/components/registry-search";
+import { AddCliDialog } from "@/components/add-cli-dialog";
 
 export const revalidate = 60;
 
@@ -33,6 +34,7 @@ export default async function Home() {
                 built by the community
               </p>
             </div>
+            <AddCliDialog />
           </div>
 
           {/* Search + Categories */}
