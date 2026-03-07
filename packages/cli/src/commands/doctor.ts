@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { existsSync } from "fs";
 import pc from "picocolors";
-import { CLI_ROOT, TOKENS_DIR, TEMPLATE_DIR } from "../lib/config.js";
+import { CLI_ROOT, TOKENS_DIR, TEMPLATE_REPO } from "../lib/config.js";
 
 export const doctorCommand = new Command("doctor")
   .description("Check system requirements and configuration")
@@ -20,6 +20,16 @@ export const doctorCommand = new Command("doctor")
       issues++;
     }
 
+    // Git
+    try {
+      const proc = Bun.spawn(["git", "--version"], { stdout: "pipe", stderr: "pipe" });
+      const version = (await new Response(proc.stdout).text()).trim();
+      console.log(`  ${pc.green("✓")} ${version}`);
+    } catch {
+      console.log(`  ${pc.red("✗")} Git not found (required to fetch template)`);
+      issues++;
+    }
+
     // CLI root
     if (existsSync(CLI_ROOT)) {
       console.log(`  ${pc.green("✓")} CLI root: ${pc.dim(CLI_ROOT)}`);
@@ -34,15 +44,10 @@ export const doctorCommand = new Command("doctor")
       console.log(`  ${pc.yellow("~")} Tokens dir not yet created: ${pc.dim(TOKENS_DIR)}`);
     }
 
-    // Template
-    if (existsSync(TEMPLATE_DIR)) {
-      console.log(`  ${pc.green("✓")} Template: ${pc.dim(TEMPLATE_DIR)}`);
-    } else {
-      console.log(`  ${pc.red("✗")} Template not found: ${pc.dim(TEMPLATE_DIR)}`);
-      issues++;
-    }
+    // Template repo
+    console.log(`  ${pc.green("✓")} Template: ${pc.dim(TEMPLATE_REPO)} (fetched on create)`);
 
     console.log(
-      issues === 0 ? `\n${pc.green("All good!")} 🎉\n` : `\n${pc.red(`${issues} issue(s) found.`)}\n`,
+      issues === 0 ? `\n${pc.green("All good!")}\n` : `\n${pc.red(`${issues} issue(s) found.`)}\n`,
     );
   });

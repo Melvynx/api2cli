@@ -1,6 +1,8 @@
-import { existsSync, cpSync, readdirSync, statSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, cpSync, readdirSync, statSync, readFileSync, writeFileSync, rmSync, mkdtempSync } from "fs";
 import { join } from "path";
-import { TEMPLATE_DIR } from "./config.js";
+import { tmpdir } from "os";
+import { execSync } from "child_process";
+import { TEMPLATE_REPO, TEMPLATE_REPO_PATH } from "./config.js";
 
 interface TemplateVars {
   appName: string;
@@ -10,12 +12,24 @@ interface TemplateVars {
   authHeader: string;
 }
 
-/** Copy the template scaffold to a target directory */
+/** Clone the template from GitHub into a target directory */
 export function copyTemplate(targetDir: string): void {
-  if (!existsSync(TEMPLATE_DIR)) {
-    throw new Error(`Template not found at ${TEMPLATE_DIR}. Run: api2cli doctor`);
+  const tmp = mkdtempSync(join(tmpdir(), "api2cli-"));
+  try {
+    execSync(`git clone --depth 1 --filter=blob:none --sparse ${TEMPLATE_REPO} ${tmp}/repo`, {
+      stdio: "pipe",
+    });
+    execSync(`git -C ${tmp}/repo sparse-checkout set ${TEMPLATE_REPO_PATH}`, {
+      stdio: "pipe",
+    });
+    const templateSrc = join(tmp, "repo", TEMPLATE_REPO_PATH);
+    if (!existsSync(templateSrc)) {
+      throw new Error(`Template not found in repo at ${TEMPLATE_REPO_PATH}`);
+    }
+    cpSync(templateSrc, targetDir, { recursive: true });
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
   }
-  cpSync(TEMPLATE_DIR, targetDir, { recursive: true });
 }
 
 /** Replace all {{PLACEHOLDER}} tokens in every file in a directory tree */
@@ -29,7 +43,6 @@ export function replacePlaceholders(dir: string, vars: TemplateVars): void {
   ];
 
   walkFiles(dir, (filePath) => {
-    // Skip binary files and node_modules
     if (filePath.includes("node_modules")) return;
     const ext = filePath.split(".").pop() ?? "";
     if (!["ts", "js", "json", "md", "txt", "template"].includes(ext)) return;

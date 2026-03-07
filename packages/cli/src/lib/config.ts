@@ -7,8 +7,11 @@ export const CLI_ROOT = join(homedir(), ".cli");
 /** Centralized token storage directory */
 export const TOKENS_DIR = join(homedir(), ".config", "tokens");
 
-/** Template directory (relative to this package in the monorepo) */
-export const TEMPLATE_DIR = resolve(import.meta.dir, "..", "..", "..", "template");
+/** GitHub repo for fetching the template */
+export const TEMPLATE_REPO = "https://github.com/Melvynx/api2cli.git";
+
+/** Path to template within the repo */
+export const TEMPLATE_REPO_PATH = "packages/template";
 
 /** Placeholders used in the template that get replaced during create */
 export const PLACEHOLDERS = [

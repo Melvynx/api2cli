@@ -1,5 +1,7 @@
 # api2cli Commands Reference
 
+All commands use `npx api2cli` (no global install needed).
+
 ## Core Commands
 
 ### create
@@ -7,7 +9,7 @@
 Generate a new CLI from API documentation.
 
 ```bash
-api2cli create <app> [options]
+npx api2cli create <app> [options]
 ```
 
 | Flag | Description | Default |
@@ -22,9 +24,9 @@ api2cli create <app> [options]
 
 Examples:
 ```bash
-api2cli create typefully --base-url https://api.typefully.com --auth-type bearer
-api2cli create dub --openapi https://api.dub.co/openapi.json
-api2cli create my-api --docs https://docs.example.com/api
+npx api2cli create typefully --base-url https://api.typefully.com --auth-type bearer
+npx api2cli create dub --openapi https://api.dub.co/openapi.json
+npx api2cli create my-api --docs https://docs.example.com/api
 ```
 
 ### bundle
@@ -32,7 +34,7 @@ api2cli create my-api --docs https://docs.example.com/api
 Build a CLI from source.
 
 ```bash
-api2cli bundle [app] [options]
+npx api2cli bundle [app] [options]
 ```
 
 | Flag | Description | Default |
@@ -46,8 +48,8 @@ api2cli bundle [app] [options]
 Add or remove a CLI from PATH.
 
 ```bash
-api2cli link [app] [--all]
-api2cli unlink <app>
+npx api2cli link [app] [--all]
+npx api2cli unlink <app>
 ```
 
 ## Management Commands
@@ -57,7 +59,7 @@ api2cli unlink <app>
 List all installed CLIs with build and auth status.
 
 ```bash
-api2cli list [--json]
+npx api2cli list [--json]
 ```
 
 ### tokens
@@ -65,7 +67,7 @@ api2cli list [--json]
 List all configured API tokens (masked by default).
 
 ```bash
-api2cli tokens [--show]
+npx api2cli tokens [--show]
 ```
 
 ### remove
@@ -73,15 +75,15 @@ api2cli tokens [--show]
 Remove a CLI entirely (directory, PATH entry, and token).
 
 ```bash
-api2cli remove <app> [--keep-token]
+npx api2cli remove <app> [--keep-token]
 ```
 
 ### doctor
 
-Check system requirements (bun, directories, template).
+Check system requirements (bun, git, directories).
 
 ```bash
-api2cli doctor
+npx api2cli doctor
 ```
 
 ### update
@@ -89,7 +91,7 @@ api2cli doctor
 Re-sync a CLI when the upstream API changes.
 
 ```bash
-api2cli update <app> [--docs <url>] [--openapi <url>]
+npx api2cli update <app> [--docs <url>] [--openapi <url>]
 ```
 
 This is agent-driven: update resources in `<cli>/src/resources/` then rebuild.
@@ -99,11 +101,11 @@ This is agent-driven: update resources in `<cli>/src/resources/` then rebuild.
 ### install
 
 ```bash
-api2cli install <app> [--force]
+npx api2cli install <app> [--force]
 ```
 
 ### publish
 
 ```bash
-api2cli publish <app> [--scope <scope>]
+npx api2cli publish <app> [--scope <scope>]
 ```

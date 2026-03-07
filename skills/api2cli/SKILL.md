@@ -7,6 +7,8 @@ description: "Generate a CLI + AgentSkill from any REST API documentation. Use w
 
 Turn any REST API into a standardized, agent-ready CLI.
 
+Always use `npx api2cli` to run commands (no install needed).
+
 ## Workflow
 
 ### Step 1: Discover the API
@@ -20,7 +22,7 @@ Before creating anything, gather API information:
 ### Step 2: Create the scaffold
 
 ```bash
-api2cli create <app> \
+npx api2cli create <app> \
   --base-url https://api.example.com \
   --auth-type bearer \
   --auth-header Authorization
@@ -53,16 +55,15 @@ program.addCommand(draftsResource);
 ### Step 4: Build, link, and test
 
 ```bash
-api2cli bundle <app>
-api2cli link <app>
-<app>-cli auth set "your-token"
-<app>-cli auth test
-<app>-cli <resource> list --json
+npx api2cli bundle <app>
+npx api2cli link <app>
+# After linking, use the full path to run (symlinked to ~/.local/bin/<app>-cli)
+~/.local/bin/<app>-cli auth set "your-token"
+~/.local/bin/<app>-cli auth test
+~/.local/bin/<app>-cli <resource> list --json
 ```
 
-## Publishing
-
-To publish a generated CLI to the npm registry, use the publish-to-npm skill.
+Do NOT run `source ~/.zshrc` - it fails in non-interactive shells. Use `~/.local/bin/<app>-cli` directly.
 
 ## Generated CLI Conventions
 
