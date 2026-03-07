@@ -80,7 +80,7 @@ Examples:
           process.exit(1);
         }
         const data = await res.json();
-        const githubUrl = data.githubRepo || data.skill?.githubRepo;
+        const githubUrl = data.data?.githubRepo || data.githubRepo;
         if (!githubUrl) {
           console.error(`${pc.red("✗")} No GitHub repo found for ${source}.`);
           process.exit(1);
