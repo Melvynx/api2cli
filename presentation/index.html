@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>api2cli — Hackathon</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#08080a;--fg:#f4f4f5;--muted:#71717a;--dim:rgba(255,255,255,.12);
+    --red:#D54747;--green:#34d399;--amber:#fbbf24;
+    --mono:'SF Mono','Fira Code','JetBrains Mono','Cascadia Code',monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  }
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:var(--bg);color:var(--fg);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ─── ENGINE ─── */
+  .deck{position:relative;width:100vw;height:100vh}
+  .s{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    padding:3rem 5vw;
+    opacity:0;visibility:hidden;
+    transition:opacity .5s cubic-bezier(.4,0,.2,1),transform .5s cubic-bezier(.4,0,.2,1);
+    transform:scale(.97) translateY(12px);
+  }
+  .s.on{opacity:1;visibility:visible;transform:scale(1) translateY(0)}
+
+  /* stagger children */
+  .s.on>*{animation:up .55s cubic-bezier(.16,1,.3,1) both}
+  .s.on>*:nth-child(1){animation-delay:0s}
+  .s.on>*:nth-child(2){animation-delay:.07s}
+  .s.on>*:nth-child(3){animation-delay:.14s}
+  .s.on>*:nth-child(4){animation-delay:.21s}
+  .s.on>*:nth-child(5){animation-delay:.28s}
+  .s.on>*:nth-child(6){animation-delay:.35s}
+  .s.on>*:nth-child(7){animation-delay:.42s}
+  @keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ─── TYPE ─── */
+  .mega{font-size:clamp(3rem,8vw,8rem);font-weight:800;letter-spacing:-.04em;line-height:.95;text-align:center}
+  .big{font-size:clamp(2rem,5vw,5rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;text-align:center}
+  .mid{font-size:clamp(1.2rem,2.5vw,2rem);font-weight:500;text-align:center;line-height:1.4}
+  .sub{font-size:clamp(.95rem,1.5vw,1.25rem);color:var(--muted);text-align:center;line-height:1.6;max-width:600px}
+  .mono{font-family:var(--mono)}
+  .red{color:var(--red)}
+  .green{color:var(--green)}
+  .amber{color:var(--amber)}
+  .dim{color:rgba(255,255,255,.18)}
+  .muted{color:var(--muted)}
+  .grad{background:linear-gradient(135deg,#fff 30%,var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .grad2{background:linear-gradient(135deg,var(--red),#FF8A65);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .strike{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.2);color:rgba(255,255,255,.15)}
+
+  .gap-sm{height:.8rem}
+  .gap{height:1.5rem}
+  .gap-lg{height:2.5rem}
+
+  /* ─── BADGE ─── */
+  .badge{
+    display:inline-flex;align-items:center;gap:.45rem;
+    border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);
+    border-radius:999px;padding:.3rem .75rem;
+    font-family:var(--mono);font-size:.72rem;color:var(--muted);
+  }
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+  .badge .dot-red{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red)}
+
+  /* ─── TERMINAL ─── */
+  .term{
+    background:#0c0c0e;border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;overflow:hidden;width:100%;max-width:620px;text-align:left;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:7px;padding:.6rem 1rem;
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .term-bar i{width:11px;height:11px;border-radius:50%;display:block}
+  .term-bar .r{background:#ff5f57}.term-bar .y{background:#febc2e}.term-bar .g{background:#28c840}
+  .term-body{padding:1.2rem 1.5rem;font-family:var(--mono);font-size:clamp(.7rem,1.1vw,.88rem);line-height:2}
+  .term-body .c{color:rgba(255,255,255,.45)}
+  .term-body .o{color:var(--green)}
+  .term-body .x{color:rgba(255,255,255,.15)}
+
+  /* ─── FLOW ARROWS ─── */
+  .flow{display:flex;align-items:center;gap:clamp(1rem,3vw,2.5rem);flex-wrap:wrap;justify-content:center}
+  .flow-item{text-align:center}
+  .flow-item .icon{font-size:clamp(2rem,4vw,3.5rem);margin-bottom:.4rem}
+  .flow-item .label{font-family:var(--mono);font-size:clamp(.7rem,1vw,.9rem);color:var(--muted)}
+  .flow-arrow{font-size:1.5rem;color:rgba(255,255,255,.12)}
+
+  /* ─── COMPARISON ROW ─── */
+  .vs-row{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(1rem,3vw,3rem);
+    align-items:center;width:100%;max-width:800px;
+  }
+  .vs-box{padding:2rem;border-radius:16px;text-align:center}
+  .vs-box.dead{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05)}
+  .vs-box.alive{background:rgba(52,211,153,.03);border:1px solid rgba(52,211,153,.12)}
+  .vs-box .name{font-family:var(--mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+  .vs-box .stat{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;font-family:var(--mono)}
+  .vs-box .row{display:flex;justify-content:center;gap:1.2rem;margin-top:.8rem}
+  .vs-box .item{text-align:center}
+  .vs-box .val{font-size:clamp(1rem,2vw,1.4rem);font-weight:700;font-family:var(--mono)}
+  .vs-box .lbl{font-size:.65rem;color:var(--muted);margin-top:.1rem}
+  .vs-mid{font-family:var(--mono);font-size:1.2rem;font-weight:800;color:var(--red);
+    width:48px;height:48px;border-radius:50%;border:2px solid rgba(213,71,71,.25);
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ─── TAGS ─── */
+  .tags{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;max-width:640px}
+  .tag{
+    padding:.4rem .9rem;border:1px solid rgba(255,255,255,.06);border-radius:999px;
+    font-family:var(--mono);font-size:clamp(.65rem,.9vw,.78rem);color:var(--muted);
+    transition:all .2s;
+  }
+
+  /* ─── GLOW ─── */
+  .glow{
+    position:absolute;border-radius:50%;pointer-events:none;
+    filter:blur(100px);opacity:.6;
+  }
+  .glow-red{background:rgba(213,71,71,.15);width:500px;height:400px}
+  .glow-green{background:rgba(52,211,153,.08);width:400px;height:300px}
+
+  /* ─── UI CHROME ─── */
+  .bar{position:fixed;bottom:0;left:0;height:2px;background:var(--red);transition:width .35s ease;z-index:99}
+  .cnt{
+    position:fixed;bottom:1rem;left:1.5rem;
+    font-family:var(--mono);font-size:.65rem;color:rgba(255,255,255,.15);z-index:99;
+  }
+  .hint{
+    position:fixed;bottom:1rem;right:1.5rem;
+    font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.1);z-index:99;
+  }
+  .hint kbd{
+    padding:.1rem .35rem;border:1px solid rgba(255,255,255,.08);border-radius:3px;
+    background:rgba(255,255,255,.03);margin:0 .15rem;
+  }
+
+  /* ─── GRAIN ─── */
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:98;
+    opacity:.03;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 0 ─ HOOK -->
+<div class="s on" data-i="0">
+  <div class="glow glow-red" style="top:-15%;left:50%;transform:translateX(-50%)"></div>
+  <p class="mega">Your agent<br>is <span class="grad2">blind.</span></p>
+</div>
+
+<!-- 1 ─ PAIN -->
+<div class="s" data-i="1">
+  <p class="big">Millions of APIs.</p>
+  <div class="gap-sm"></div>
+  <p class="big dim">Zero way in.</p>
+  <div class="gap"></div>
+  <p class="sub">No CLI. No standard. No conventions.<br>Your agent can't reach the tools it needs.</p>
+</div>
+
+<!-- 2 ─ MCP TRIED -->
+<div class="s" data-i="2">
+  <p class="big muted">MCP tried to fix this.</p>
+  <div class="gap"></div>
+  <p class="mid strike">~800ms startup &nbsp; WebSocket drops &nbsp; Vendor lock-in &nbsp; ~2K tokens/call</p>
+  <div class="gap"></div>
+  <p class="big red">It didn't.</p>
+</div>
+
+<!-- 3 ─ INSIGHT -->
+<div class="s" data-i="3">
+  <p class="sub" style="color:var(--muted)">The universal interface already exists.</p>
+  <div class="gap-sm"></div>
+  <p class="mega grad">CLI.</p>
+  <div class="gap"></div>
+  <p class="sub">Every agent knows how to call a CLI.<br>Every terminal runs one. Since 1971.</p>
+</div>
+
+<!-- 4 ─ PRODUCT REVEAL -->
+<div class="s" data-i="4">
+  <div class="glow glow-red" style="top:20%;left:50%;transform:translateX(-50%)"></div>
+  <div class="badge"><span class="dot"></span>Open Source</div>
+  <div class="gap-sm"></div>
+  <p class="mega">api2cli</p>
+  <div class="gap"></div>
+  <p class="mid" style="color:var(--muted)">Any REST API → agent-ready CLI.</p>
+</div>
+
+<!-- 5 ─ FLOW -->
+<div class="s" data-i="5">
+  <p class="big">How it works.</p>
+  <div class="gap-lg"></div>
+  <div class="flow">
+    <div class="flow-item">
+      <div class="icon">💬</div>
+      <div class="label">"Create a CLI<br>for Stripe"</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="icon">⚡</div>
+      <div class="label">api2cli<br>scaffolds it</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="icon">📦</div>
+      <div class="label">Bundle<br>~5KB binary</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item">
+      <div class="icon">🚀</div>
+      <div class="label">Use it<br>everywhere</div>
+    </div>
+  </div>
+</div>
+
+<!-- 6 ─ TERMINAL DEMO -->
+<div class="s" data-i="6">
+  <div class="term">
+    <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="term-body">
+      <div class="c">$ api2cli create stripe --base-url https://api.stripe.com</div>
+      <div class="o">✓ Scaffolded stripe-cli</div>
+      <br>
+      <div class="c">$ api2cli bundle stripe</div>
+      <div class="o">✓ 4.2KB — zero dependencies</div>
+      <br>
+      <div class="c">$ api2cli link stripe</div>
+      <div class="o">✓ stripe-cli available globally</div>
+      <br>
+      <div class="x">───────────────────────────────────</div>
+      <br>
+      <div class="c">$ stripe-cli list customers --json</div>
+      <div class="o">{ "ok": true, "data": [...] }</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7 ─ STAT: SPEED -->
+<div class="s" data-i="7">
+  <p class="sub mono" style="letter-spacing:.15em;text-transform:uppercase;font-size:.7rem">Startup time</p>
+  <div class="gap-sm"></div>
+  <p class="mega green mono" style="font-size:clamp(4rem,12vw,12rem)">~25ms</p>
+  <div class="gap-sm"></div>
+  <p class="sub">MCP needs ~800ms. That's 32x slower.</p>
+</div>
+
+<!-- 8 ─ STAT: DEPS -->
+<div class="s" data-i="8">
+  <p class="sub mono" style="letter-spacing:.15em;text-transform:uppercase;font-size:.7rem">Runtime dependencies</p>
+  <div class="gap-sm"></div>
+  <p class="mega mono" style="font-size:clamp(5rem,14vw,14rem)">0</p>
+  <div class="gap-sm"></div>
+  <p class="sub">Single file. Self-contained. Runs anywhere.</p>
+</div>
+
+<!-- 9 ─ STAT: SIZE -->
+<div class="s" data-i="9">
+  <p class="sub mono" style="letter-spacing:.15em;text-transform:uppercase;font-size:.7rem">Bundle size per CLI</p>
+  <div class="gap-sm"></div>
+  <p class="mega red mono" style="font-size:clamp(4rem,12vw,12rem)">~5KB</p>
+  <div class="gap-sm"></div>
+  <p class="sub">Bundled with Bun. Smaller than this slide's CSS.</p>
+</div>
+
+<!-- 10 ─ STAT: TOKENS -->
+<div class="s" data-i="10">
+  <p class="sub mono" style="letter-spacing:.15em;text-transform:uppercase;font-size:.7rem">Token savings vs Agent Skills</p>
+  <div class="gap-sm"></div>
+  <p class="mega amber mono" style="font-size:clamp(4rem,12vw,12rem)">60×</p>
+  <div class="gap-sm"></div>
+  <p class="sub">Skills dump 12K tokens per call.<br>CLI uses <span class="mono" style="color:#fff">--help</span>. ~200 tokens.</p>
+</div>
+
+<!-- 11 ─ VS -->
+<div class="s" data-i="11">
+  <div class="vs-row">
+    <div class="vs-box dead">
+      <div class="name muted strike">MCP</div>
+      <div class="row">
+        <div class="item"><div class="val muted">~800ms</div><div class="lbl">startup</div></div>
+        <div class="item"><div class="val muted">~2K</div><div class="lbl">tokens</div></div>
+        <div class="item"><div class="val muted">💀</div><div class="lbl">offline</div></div>
+      </div>
+    </div>
+    <div class="vs-mid">vs</div>
+    <div class="vs-box alive">
+      <div class="name green">CLI</div>
+      <div class="row">
+        <div class="item"><div class="val green">~25ms</div><div class="lbl">startup</div></div>
+        <div class="item"><div class="val green">~200</div><div class="lbl">tokens</div></div>
+        <div class="item"><div class="val green">✓</div><div class="lbl">offline</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 12 ─ STANDARDIZED -->
+<div class="s" data-i="12">
+  <p class="big">Learn one.<br><span class="dim">Know them all.</span></p>
+  <div class="gap-lg"></div>
+  <div class="term" style="max-width:460px">
+    <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="term-body" style="line-height:2.2">
+      <div class="x"># Every CLI, same pattern:</div>
+      <div class="c">&lt;cli&gt; auth set|show|test</div>
+      <div class="c">&lt;cli&gt; &lt;resource&gt; list|get|create</div>
+      <div class="c">&lt;cli&gt; --json --format --verbose</div>
+    </div>
+  </div>
+</div>
+
+<!-- 13 ─ UNIVERSAL -->
+<div class="s" data-i="13">
+  <p class="big">Works with <span class="grad">everything.</span></p>
+  <div class="gap-lg"></div>
+  <div class="tags">
+    <span class="tag">Claude Code</span>
+    <span class="tag">Cursor</span>
+    <span class="tag">Windsurf</span>
+    <span class="tag">VS Code</span>
+    <span class="tag">Cline</span>
+    <span class="tag">Aider</span>
+    <span class="tag">Continue</span>
+    <span class="tag">Copilot</span>
+    <span class="tag">Warp</span>
+    <span class="tag">iTerm</span>
+    <span class="tag">Zed</span>
+    <span class="tag">JetBrains</span>
+    <span class="tag">Neovim</span>
+    <span class="tag">Emacs</span>
+    <span class="tag">Any Terminal</span>
+  </div>
+  <div class="gap"></div>
+  <p class="sub">If it has a terminal, it runs your CLI.<br>No plugins. No extensions. No config.</p>
+</div>
+
+<!-- 14 ─ MARKETPLACE -->
+<div class="s" data-i="14">
+  <div class="badge"><span class="dot"></span>Live now</div>
+  <div class="gap-sm"></div>
+  <p class="big">api2cli.dev</p>
+  <div class="gap"></div>
+  <p class="sub">Open source marketplace.<br>Browse, install, publish community CLIs.</p>
+  <div class="gap"></div>
+  <div class="term" style="max-width:500px">
+    <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="term-body">
+      <div class="c">$ npx skills add melvynx/typefully-cli</div>
+      <div class="o">✓ 6 resources, 18 commands — ready</div>
+    </div>
+  </div>
+</div>
+
+<!-- 15 ─ DEMO -->
+<div class="s" data-i="15">
+  <div class="glow glow-red" style="top:30%;left:50%;transform:translateX(-50%)"></div>
+  <div class="badge"><span class="dot-red"></span>Live</div>
+  <div class="gap-sm"></div>
+  <p class="mega">Demo.</p>
+  <div class="gap"></div>
+  <p class="sub">Zero to working CLI in under 2 minutes.</p>
+</div>
+
+<!-- 16 ─ CTA -->
+<div class="s" data-i="16">
+  <div class="glow glow-red" style="top:-10%;left:50%;transform:translateX(-50%)"></div>
+  <p class="mega">Stop configuring.<br><span class="grad2">Start building.</span></p>
+  <div class="gap-lg"></div>
+  <div class="term" style="max-width:460px">
+    <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+    <div class="term-body">
+      <div class="c">$ npx skills add Melvynx/api2cli</div>
+      <div class="o">✓ Ready.</div>
+    </div>
+  </div>
+  <div class="gap-lg"></div>
+  <p class="sub mono" style="font-size:.75rem;letter-spacing:.05em">Open Source &nbsp;·&nbsp; MIT &nbsp;·&nbsp; api2cli.dev</p>
+</div>
+
+<!-- 17 ─ THANKS -->
+<div class="s" data-i="17">
+  <p class="mega">Thank you.</p>
+  <div class="gap"></div>
+  <p class="mid muted">Questions?</p>
+</div>
+
+</div>
+
+<div class="bar" id="bar"></div>
+<div class="cnt" id="cnt"></div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd></div>
+
+<script>
+const ss=document.querySelectorAll('.s'),bar=document.getElementById('bar'),cnt=document.getElementById('cnt');
+let cur=0;const N=ss.length;
+function go(i){
+  if(i<0||i>=N||i===cur)return;
+  ss[cur].classList.remove('on');
+  cur=i;
+  ss[cur].classList.add('on');
+  bar.style.width=(cur/(N-1)*100)+'%';
+  cnt.textContent=(cur+1)+' / '+N;
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();go(cur+1)}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();go(cur-1)}
+  if(e.key==='Home')go(0);if(e.key==='End')go(N-1);
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX});
+document.addEventListener('touchend',e=>{const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?go(cur+1):go(cur-1)}});
+bar.style.width='0%';cnt.textContent='1 / '+N;
+</script>
+</body>
+</html>
