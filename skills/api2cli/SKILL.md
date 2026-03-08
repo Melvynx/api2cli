@@ -54,6 +54,14 @@ Replace all `{{...}}` placeholders in `skills/<app>-cli/SKILL.md` and `README.md
 
 See [references/skill-generation.md](references/skill-generation.md) for the template, format, and symlink instructions.
 
+To also link skills for OpenClaw:
+
+```bash
+npx api2cli link <app> --openclaw
+```
+
+See [references/openclaw.md](references/openclaw.md) for OpenClaw-specific setup, copy-paste prompts, and custom `--skills-path` usage.
+
 ### 6. Publish (when user asks)
 
 Before any publish target, run these pre-flight checks:
