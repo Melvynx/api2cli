@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { skills, type NewSkill } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { tweetNewCLI } from "@/lib/twitter";
 
@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
   const tag = req.nextUrl.searchParams.get("tag");
   const sort = req.nextUrl.searchParams.get("sort") ?? "popular";
 
-  let q = db.select().from(skills).$dynamic();
+  let q = db.select().from(skills).where(eq(skills.visible, true)).$dynamic();
 
   if (category && category !== "all") {
-    q = q.where(eq(skills.category, category));
+    q = q.where(and(eq(skills.visible, true), eq(skills.category, category)));
   }
 
   if (sort === "popular") {

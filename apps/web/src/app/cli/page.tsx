@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { skills } from "@/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -32,6 +32,7 @@ export default async function CliListPage() {
   const allSkills = await db
     .select()
     .from(skills)
+    .where(eq(skills.visible, true))
     .orderBy(desc(skills.downloads))
     .limit(50);
 

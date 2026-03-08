@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
 import { skills } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const allSkills = await db
       .select({ name: skills.name, updatedAt: skills.updatedAt })
-      .from(skills);
+      .from(skills)
+      .where(eq(skills.visible, true));
 
     cliUrls = allSkills.map((skill) => ({
       url: `https://api2cli.dev/cli/${skill.name}`,

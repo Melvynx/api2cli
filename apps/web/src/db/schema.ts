@@ -27,6 +27,7 @@ export const skills = pgTable("skills", {
   upvotes: integer("upvotes").default(0),
   downvotes: integer("downvotes").default(0),
   verified: boolean("verified").default(false),
+  visible: boolean("visible").default(true),
   authorGithub: text("author_github"),
   authorName: text("author_name"),
   tags: jsonb("tags").$type<string[]>().default([]),
