@@ -21,7 +21,86 @@ function askQuestion(question: string): Promise<string> {
   });
 }
 
-async function promptPublish(app: string): Promise<void> {
+async function createGithubRepo(
+  app: string,
+  cliDir: string,
+): Promise<string | null> {
+  const repoName = `${app}-cli`;
+  const env = { ...process.env, PATH: `/usr/local/bin:/opt/homebrew/bin:${process.env.PATH || ""}` };
+
+  // git init + initial commit
+  console.log(`  ${pc.dim("Initializing git repo...")}`);
+  const gitInit = Bun.spawnSync(["git", "init"], {
+    cwd: cliDir,
+    stdout: "ignore",
+    stderr: "ignore",
+    env,
+  });
+  if (gitInit.exitCode !== 0) {
+    console.error(`  ${pc.red("✗")} Failed to init git repo`);
+    return null;
+  }
+
+  Bun.spawnSync(["git", "add", "."], { cwd: cliDir, stdout: "ignore", stderr: "ignore", env });
+  Bun.spawnSync(["git", "commit", "-m", "Initial commit"], {
+    cwd: cliDir,
+    stdout: "ignore",
+    stderr: "ignore",
+    env,
+  });
+
+  // Find gh CLI path
+  const whichGh = Bun.spawnSync(["which", "gh"], {
+    stdout: "pipe",
+    stderr: "ignore",
+    env: { ...process.env, PATH: `/usr/local/bin:/opt/homebrew/bin:${process.env.PATH || ""}` },
+  });
+  const ghPath = whichGh.stdout.toString().trim();
+
+  if (!ghPath || whichGh.exitCode !== 0) {
+    console.error(
+      `  ${pc.red("✗")} GitHub CLI (gh) not found. Install it: ${pc.cyan("brew install gh")}`,
+    );
+    return null;
+  }
+
+  // Create GitHub repo with gh CLI
+  console.log(`  ${pc.dim("Creating GitHub repo...")}`);
+  const ghCreate = Bun.spawnSync(
+    [ghPath, "repo", "create", repoName, "--public", "--source", ".", "--push"],
+    { cwd: cliDir, stdout: "pipe", stderr: "pipe" },
+  );
+
+  if (ghCreate.exitCode !== 0) {
+    const stderr = ghCreate.stderr.toString().trim();
+    if (stderr.includes("not logged")) {
+      console.error(
+        `  ${pc.red("✗")} Not logged in to GitHub. Run: ${pc.cyan("gh auth login")}`,
+      );
+    } else {
+      console.error(`  ${pc.red("✗")} Failed to create repo: ${stderr}`);
+    }
+    return null;
+  }
+
+  // Extract repo URL from gh output
+  const output = ghCreate.stdout.toString().trim();
+  const urlMatch = output.match(/https:\/\/github\.com\/[^\s]+/);
+  if (urlMatch) return urlMatch[0];
+
+  // Fallback: get from git remote
+  const remote = Bun.spawnSync(["git", "remote", "get-url", "origin"], {
+    cwd: cliDir,
+    stdout: "pipe",
+    env,
+  });
+  const remoteUrl = remote.stdout.toString().trim();
+  if (remoteUrl) return remoteUrl;
+
+  return null;
+}
+
+async function promptPublish(app: string, cliDir: string): Promise<void> {
   const pref = getPublishPreference();
 
   if (pref === "never") return;
@@ -45,24 +124,23 @@ async function promptPublish(app: string): Promise<void> {
 
     if (answer === "a" || answer === "always") {
       setPublishPreference("always");
-      console.log(`  ${pc.dim("Saved. Will always prompt for publish.")}`);
+      console.log(`  ${pc.dim("Saved. Will always publish automatically.")}`);
     } else if (answer !== "y" && answer !== "yes") {
       return;
     }
   }
 
-  // Ask for GitHub URL
-  const githubUrl = await askQuestion(
-    `  GitHub repo URL ${pc.dim("(e.g. user/repo)")}: `,
-  );
+  // Create GitHub repo, push, and publish
+  const githubUrl = await createGithubRepo(app, cliDir);
 
   if (!githubUrl) {
     console.log(
-      `  ${pc.dim("Skipped. Publish later with:")} ${pc.cyan(`api2cli publish ${app}`)}`,
+      `  ${pc.dim("Publish later with:")} ${pc.cyan(`api2cli publish ${app}`)}`,
     );
     return;
   }
 
+  console.log(`  ${pc.green("+")} Pushed to ${pc.cyan(githubUrl)}`);
   await publishToMarketplace(githubUrl);
 }
 
@@ -114,7 +192,8 @@ Examples:
 
     // 4. Install dependencies
     console.log(`  ${pc.dim("Installing dependencies...")}`);
-    const install = Bun.spawn(["bun", "install"], {
+    const bunPath = process.execPath;
+    const install = Bun.spawn([bunPath, "install"], {
       cwd: cliDir,
       stdout: "ignore",
       stderr: "pipe",
@@ -144,5 +223,5 @@ Examples:
     console.log(`  4. Auth: ${pc.cyan(`${app}-cli auth set "your-token"`)}`);
 
     // Prompt to publish on marketplace
-    await promptPublish(app);
+    await promptPublish(app, cliDir);
   });

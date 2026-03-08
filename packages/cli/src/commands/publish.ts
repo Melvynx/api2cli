@@ -35,7 +35,7 @@ export async function publishToMarketplace(
       `  ${pc.green("✓")} Published ${pc.bold(data.skill.displayName)} to marketplace`,
     );
     console.log(
-      `  ${pc.dim(`→ ${data.skill.url || `https://api2cli.dev/cli/${data.skill.name}`}`)}`,
+      `  ${pc.dim(`→ https://api2cli.dev/cli/${data.skill.name}`)}`,
     );
     return true;
   } catch {

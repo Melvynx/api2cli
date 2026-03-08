@@ -8,8 +8,9 @@ import Link from "next/link";
 
 export function SkillCard({ skill }: { skill: Skill }) {
   const [copied, setCopied] = useState(false);
+  const [upvotes, setUpvotes] = useState(skill.upvotes ?? 0);
+  const [downvotes, setDownvotes] = useState(skill.downvotes ?? 0);
   const installCmd = `npx api2cli install ${skill.name}`;
-  const score = (skill.upvotes ?? 0) - (skill.downvotes ?? 0);
 
   const copyInstall = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -22,6 +23,8 @@ export function SkillCard({ skill }: { skill: Skill }) {
   const vote = async (direction: "up" | "down", e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (direction === "up") setUpvotes((v) => v + 1);
+    else setDownvotes((v) => v + 1);
     await fetch(`/api/skills/${skill.name}/vote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,13 +108,13 @@ export function SkillCard({ skill }: { skill: Skill }) {
                 onClick={(e) => vote("up", e)}
                 className="flex items-center gap-1 rounded-md px-2 py-1 transition-colors hover:bg-emerald-500/10 hover:text-emerald-500"
               >
-                ▲ {skill.upvotes ?? 0}
+                ▲ {upvotes}
               </button>
               <button
                 onClick={(e) => vote("down", e)}
                 className="flex items-center gap-1 rounded-md px-2 py-1 transition-colors hover:bg-red-500/10 hover:text-red-500"
               >
-                ▼ {skill.downvotes ?? 0}
+                ▼ {downvotes}
               </button>
             </div>
             <span className={`font-mono font-medium ${popularityColor}`}>

@@ -1,13 +1,11 @@
 import { db } from "@/db";
 import { skills, CATEGORIES } from "@/db/schema";
 import { desc } from "drizzle-orm";
-import { SkillCard } from "@/components/skill-card";
 import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { CategoryFilter } from "@/components/category-filter";
-import { RegistrySearch } from "@/components/registry-search";
 import { AddCliDialog } from "@/components/add-cli-dialog";
+import { RegistryContent } from "@/components/registry-content";
 
 export const revalidate = 60;
 
@@ -37,29 +35,10 @@ export default async function Home() {
             <AddCliDialog />
           </div>
 
-          {/* Search + Categories */}
-          <RegistrySearch />
-          <div className="mt-4" />
-          <CategoryFilter categories={CATEGORIES as unknown as { value: string; label: string; icon: string }[]} />
-          <div className="mt-6" />
-
-          {allSkills.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 py-20 text-center">
-              <div className="text-4xl">📦</div>
-              <p className="mt-4 font-mono text-sm text-muted-foreground">
-                No CLIs published yet. Be the first!
-              </p>
-              <pre className="mx-auto mt-4 inline-block rounded-xl bg-muted px-5 py-3 font-mono text-xs text-muted-foreground">
-                npx api2cli create my-api
-              </pre>
-            </div>
-          ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {allSkills.map((skill) => (
-                <SkillCard key={skill.id} skill={skill} />
-              ))}
-            </div>
-          )}
+          <RegistryContent
+            initialSkills={allSkills}
+            categories={CATEGORIES as unknown as { value: string; label: string; icon: string }[]}
+          />
         </section>
       </main>
       <Footer />
