@@ -72,6 +72,16 @@
   .term-bar .tr { background:#ff5f57 } .term-bar .ty { background:#febc2e } .term-bar .tg { background:#28c840 }
   .term-body { padding:1.5rem 1.8rem; font-family:var(--mono); font-size:1.05rem; line-height:2; }
   .term-body .c { color:rgba(255,255,255,.55) } .term-body .o { color:var(--green) } .term-body .er { color:var(--red) } .term-body .h { color:rgba(255,255,255,.78) } .term-body .x { color:rgba(255,255,255,.22) }
+  .term-body .p { color:rgba(255,255,255,.28) }
+  .term-body .k { color:#e8e8ec; font-weight:600 }
+  .term-body .f { color:var(--amber) }
+  .term-body .str { color:var(--green) }
+  .term-body .v { color:var(--purple) }
+  .term-body .jk { color:var(--amber) }
+  .term-body .jv { color:var(--purple) }
+  .term-body .jb { color:rgba(255,255,255,.3) }
+  .term-body .jt { color:var(--green) }
+  .term-body .sc { color:var(--purple); font-weight:500 }
   .br { height:.8rem }
 
   /* ── COLUMNS ── */
@@ -242,14 +252,14 @@
   <div class="term">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ typefully-cli --help</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="f">--help</span></div>
       <div class="br"></div>
       <div class="h">Commands:</div>
-      <div class="o">&nbsp; social-sets&nbsp; Manage social sets</div>
-      <div class="o">&nbsp; drafts&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage drafts</div>
-      <div class="o">&nbsp; media&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage media</div>
-      <div class="o">&nbsp; tags&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage tags</div>
-      <div class="o">&nbsp; queue&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Manage queue</div>
+      <div class="o">&nbsp; <span class="sc">social-sets</span>&nbsp; <span class="x">Manage social sets</span></div>
+      <div class="o">&nbsp; <span class="sc">drafts</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Manage drafts</span></div>
+      <div class="o">&nbsp; <span class="sc">media</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Manage media</span></div>
+      <div class="o">&nbsp; <span class="sc">tags</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Manage tags</span></div>
+      <div class="o">&nbsp; <span class="sc">queue</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Manage queue</span></div>
     </div>
   </div>
   <div class="sp"></div>
@@ -262,12 +272,12 @@
   <div class="term">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ typefully-cli social-sets --help</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">social-sets</span> <span class="f">--help</span></div>
       <div class="br"></div>
       <div class="h">Commands:</div>
-      <div class="o">&nbsp; list&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; List all social sets</div>
-      <div class="o">&nbsp; get &lt;id&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Get social set details</div>
-      <div class="o">&nbsp; resolve-linkedin&nbsp; Resolve LinkedIn company URL</div>
+      <div class="o">&nbsp; <span class="sc">list</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">List all social sets</span></div>
+      <div class="o">&nbsp; <span class="sc">get</span> <span class="v">&lt;id&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Get social set details</span></div>
+      <div class="o">&nbsp; <span class="sc">resolve-linkedin</span>&nbsp; <span class="x">Resolve LinkedIn company URL</span></div>
     </div>
   </div>
   <div class="sp"></div>
@@ -280,13 +290,13 @@
   <div class="term">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ typefully-cli drafts create --help</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="f">--help</span></div>
       <div class="br"></div>
       <div class="h">Options:</div>
-      <div class="o">&nbsp; --text &lt;text&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Post content (required)</div>
-      <div class="o">&nbsp; --platform &lt;platforms&gt;&nbsp; x,linkedin,threads,bluesky</div>
-      <div class="o">&nbsp; --publish-at &lt;when&gt;&nbsp;&nbsp;&nbsp;&nbsp; "now", "next-free-slot", or ISO</div>
-      <div class="o">&nbsp; --json&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Output as JSON</div>
+      <div class="o">&nbsp; <span class="f">--text</span> <span class="v">&lt;text&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Post content (required)</span></div>
+      <div class="o">&nbsp; <span class="f">--platform</span> <span class="v">&lt;platforms&gt;</span>&nbsp; <span class="x">x,linkedin,threads,bluesky</span></div>
+      <div class="o">&nbsp; <span class="f">--publish-at</span> <span class="v">&lt;when&gt;</span>&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">"now", "next-free-slot", or ISO</span></div>
+      <div class="o">&nbsp; <span class="f">--json</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="x">Output as JSON</span></div>
     </div>
   </div>
   <div class="sp"></div>
@@ -299,12 +309,12 @@
   <div class="term">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ typefully-cli drafts create abc123 \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--text "Launching api2cli today!" \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--platform x,linkedin \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--publish-at next-free-slot --json</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="v">abc123</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--text</span> <span class="str">"Launching api2cli today!"</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--platform</span> <span class="v">x,linkedin</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--publish-at</span> <span class="v">next-free-slot</span> <span class="f">--json</span></div>
       <div class="br"></div>
-      <div class="o">{ "ok": true, "data": { "id": "draft_7kx..." } }</div>
+      <div class="o"><span class="jb">{</span> <span class="jk">"ok"</span>: <span class="jt">true</span>, <span class="jk">"data"</span>: <span class="jb">{</span> <span class="jk">"id"</span>: <span class="str">"draft_7kx..."</span> <span class="jb">}</span> <span class="jb">}</span></div>
     </div>
   </div>
   <div class="sp"></div>
@@ -344,13 +354,13 @@
   <div class="term">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ typefully-cli drafts create abc123 --platform x</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="v">abc123</span> <span class="f">--platform</span> <span class="v">x</span></div>
       <div class="br"></div>
-      <div class="er">error: missing required option '--text &lt;text&gt;'</div>
+      <div class="er">error: missing required option '<span class="f" style="color:var(--red)">--text</span> &lt;text&gt;'</div>
       <div class="br"></div>
       <div class="x">─────────────────────────────────────────</div>
       <div class="br"></div>
-      <div class="c">$ typefully-cli drafts create abc123 --text "Hello!" --platform x</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="v">abc123</span> <span class="f">--text</span> <span class="str">"Hello!"</span> <span class="f">--platform</span> <span class="v">x</span></div>
       <div class="br"></div>
       <div class="o">✓ Draft created — draft_7kx</div>
     </div>
@@ -372,14 +382,14 @@
       <div class="h">> "Schedule a post on X and LinkedIn for tomorrow"</div>
       <div class="br"></div>
       <div class="x">Agent discovers the CLI via --help:</div>
-      <div class="c">$ typefully-cli --help</div>
-      <div class="c">$ typefully-cli drafts create --help</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="f">--help</span></div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="f">--help</span></div>
       <div class="br"></div>
       <div class="x">Agent executes:</div>
-      <div class="c">$ typefully-cli drafts create abc123 \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--text "Launching api2cli!" \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--platform x,linkedin \</div>
-      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;--publish-at next-free-slot</div>
+      <div class="c"><span class="p">$</span> <span class="k">typefully-cli</span> <span class="sc">drafts</span> <span class="sc">create</span> <span class="v">abc123</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--text</span> <span class="str">"Launching api2cli!"</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--platform</span> <span class="v">x,linkedin</span> \</div>
+      <div class="c">&nbsp;&nbsp;&nbsp;&nbsp;<span class="f">--publish-at</span> <span class="v">next-free-slot</span></div>
       <div class="br"></div>
       <div class="o">✓ Draft scheduled for tomorrow 9:00 AM</div>
     </div>
@@ -441,7 +451,7 @@
   <div class="term" style="max-width:620px">
     <div class="term-bar"><i class="tr"></i><i class="ty"></i><i class="tg"></i></div>
     <div class="term-body">
-      <div class="c">$ npx skills add Melvynx/api2cli</div>
+      <div class="c"><span class="p">$</span> <span class="k">npx</span> <span class="sc">skills</span> <span class="sc">add</span> <span class="v">Melvynx/api2cli</span></div>
       <div class="o">✓ Ready.</div>
     </div>
   </div>

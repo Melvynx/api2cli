@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { DocsSidebar } from "@/components/docs-sidebar";
+import { CopyMarkdownButton } from "@/components/copy-markdown-button";
 
 export default function DocsLayout({
   children,
@@ -12,9 +13,12 @@ export default function DocsLayout({
       <div className="mx-auto flex max-w-7xl flex-1">
         <DocsSidebar />
         <main className="min-w-0 flex-1 px-8 py-12 lg:px-16">
-          <article className="docs-content mx-auto max-w-3xl">
-            {children}
-          </article>
+          <div className="relative mx-auto max-w-3xl">
+            <div className="absolute top-0 right-0">
+              <CopyMarkdownButton />
+            </div>
+            <article className="docs-content">{children}</article>
+          </div>
         </main>
       </div>
     </div>
