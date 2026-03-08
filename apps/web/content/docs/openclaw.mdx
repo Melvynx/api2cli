@@ -1,197 +1,60 @@
 ---
 title: OpenClaw Setup
-description: "Set up api2cli in OpenClaw with a single copy-paste prompt. Auto-detects your API keys, installs matching CLIs, and links skills."
+description: "Install the api2cli skill in OpenClaw via ClawHub. One prompt to set up everything."
 keywords:
   - OpenClaw
   - ClawHub
   - setup
-  - one prompt
-  - API keys
 ---
 
-Set up api2cli inside [OpenClaw](https://docs.openclaw.ai) with a single copy-paste prompt. It auto-detects your API keys, installs matching CLIs, and links everything as OpenClaw skills.
+Install api2cli in [OpenClaw](https://docs.openclaw.ai) so the agent can wrap any REST API into a CLI on demand.
 
-## Install via ClawHub
+## One-Prompt Setup
 
-api2cli is published on [ClawHub](https://claw-hub.net). Install the skill directly:
+Copy this and paste it into your OpenClaw agent:
+
+````
+Set up api2cli for me:
+
+1. Install bun if missing: bun --version || curl -fsSL https://bun.sh/install | bash
+2. Install api2cli: npm i -g api2cli
+3. Install the api2cli skill from ClawHub: npx clawhub install api2cli
+4. Link the skill to OpenClaw: npx api2cli link --all --openclaw
+5. Verify: npx api2cli --help
+
+Once installed, I can ask you to:
+- Create a CLI for any API: "Use api2cli to create CLI for <api-name>"
+- Install an existing CLI: "npx api2cli install <name>"
+- Browse available CLIs: "npx api2cli list" or check https://api2cli.dev
+````
+
+That's it. The agent now has the api2cli skill and can create or install CLIs whenever you need one.
+
+## What Happens After Setup
+
+Once the skill is installed, just ask your OpenClaw agent in natural language:
+
+- *"Create a CLI for the Notion API"*
+- *"Install the typefully CLI"*
+- *"Wrap the Stripe API into a CLI"*
+
+The agent reads the SKILL.md, discovers the API, generates resources, builds the CLI, and links it to your PATH. All CLIs follow the same pattern (`<app>-cli <resource> <action> --json`), so the agent learns once and scales to every API.
+
+## Install via ClawHub Directly
+
+If you prefer to install manually:
 
 ```bash
 npx clawhub install api2cli
 ```
 
-This adds the api2cli skill to your OpenClaw workspace. Then use the one-prompt below to set up individual CLIs.
-
-## One-Prompt Setup
-
-Copy this entire prompt and paste it into your OpenClaw agent. It will install api2cli, scan your environment for API keys, and set up every matching CLI automatically.
-
-````
-Set up api2cli and install all CLIs that match my existing API keys. Follow every step in order.
-
-### Step 1 — Install prerequisites
-
-Run these commands:
-
-bun --version || curl -fsSL https://bun.sh/install | bash
-npm i -g api2cli
-
-Verify: npx api2cli --help
-
-### Step 2 — Fetch available CLIs
-
-Run:
-
-curl -s https://api2cli.dev/api/skills | jq -r '.data[].name'
-
-Save the full list. There are 18+ CLIs available.
-
-### Step 3 — Detect my API keys
-
-Check which of these environment variables are set (non-empty):
-
-| Env var                  | CLI               |
-|--------------------------|-------------------|
-| TYPEFULLY_TOKEN          | typefully-cli     |
-| DUB_API_KEY              | dub-cli           |
-| MERCURY_API_TOKEN        | mercury-cli       |
-| FRONTAPP_TOKEN           | frontapp-cli      |
-| EXA_API_KEY              | exa-cli           |
-| AGENTMAIL_API_KEY        | agentmail-cli     |
-| LUMAIL_API_KEY           | lumail-cli        |
-| CONTEXT7_API_KEY         | context7-cli      |
-| CODELINE_API_KEY         | codeline-cli      |
-| AVIATIONSTACK_API_KEY    | aviationstack-cli |
-| TCHAO_API_KEY            | tchao-cli         |
-| SAVEIT_API_KEY           | saveit-cli        |
-| PORKBUN_API_KEY          | porkbun-cli       |
-| RENTCAST_API_KEY         | rentcast-cli      |
-| OPENSKY_USERNAME         | opensky-cli       |
-
-Also check for existing token files:
-
-ls ~/.config/tokens/*-cli.txt 2>/dev/null
-
-Any token file like `typefully-cli.txt` means that CLI was previously configured.
-
-### Step 4 — Present matches and confirm
-
-Show me:
-1. CLIs that match a detected env var or token file (mark as "recommended")
-2. All other available CLIs (mark as "optional")
-
-Ask me which ones to install. If I say "all matched" or "all", install every recommended one. If no keys are detected, show the full list and ask me to pick.
-
-### Step 5 — Install each selected CLI
-
-For each CLI the user confirmed, run:
-
-npx api2cli install <name>
-
-If it fails with "already installed", run:
-
-npx api2cli install <name> --force
-
-### Step 6 — Set auth tokens
-
-For each installed CLI, set the auth token:
-
-- If the env var exists: <name>-cli auth set "$ENV_VAR_VALUE"
-- If a token file exists at ~/.config/tokens/<name>.txt: skip, already configured
-- Otherwise: ask me for the token
-
-Then verify: <name>-cli auth test
-
-If auth test fails, tell me and move on to the next CLI.
-
-### Step 7 — Link skills to OpenClaw
-
-For each installed CLI, run:
-
-npx api2cli link <app> --openclaw
-
-This symlinks the SKILL.md into ~/.openclaw/workspace/skills/<name>/ so you can use the CLI in future conversations.
-
-### Step 8 — Summary
-
-Print a table:
-
-| CLI | Installed | Auth | Linked |
-|-----|-----------|------|--------|
-
-Show checkmarks or X for each column. If any CLI failed, show the error.
-
-Finally, run:
-
-npx api2cli list
-
-to confirm everything is registered.
-````
-
-## API Key Mapping
-
-The prompt detects these environment variables to find which CLIs you can use:
-
-| Environment Variable | CLI |
-|---------------------|-----|
-| `TYPEFULLY_TOKEN` | typefully-cli |
-| `DUB_API_KEY` | dub-cli |
-| `MERCURY_API_TOKEN` | mercury-cli |
-| `FRONTAPP_TOKEN` | frontapp-cli |
-| `EXA_API_KEY` | exa-cli |
-| `AGENTMAIL_API_KEY` | agentmail-cli |
-| `LUMAIL_API_KEY` | lumail-cli |
-| `CONTEXT7_API_KEY` | context7-cli |
-| `CODELINE_API_KEY` | codeline-cli |
-| `AVIATIONSTACK_API_KEY` | aviationstack-cli |
-| `TCHAO_API_KEY` | tchao-cli |
-| `SAVEIT_API_KEY` | saveit-cli |
-| `PORKBUN_API_KEY` | porkbun-cli |
-| `RENTCAST_API_KEY` | rentcast-cli |
-| `OPENSKY_USERNAME` | opensky-cli |
-
-It also checks `~/.config/tokens/` for existing token files from previous installs.
-
-## Quick Install (Single CLI)
-
-To install just one CLI, paste this to your OpenClaw agent:
-
-```
-Install <app>-cli for me:
-
-1. Run: npm i -g api2cli
-2. Run: npx api2cli install <app>
-3. Run: <app>-cli auth set "<YOUR_TOKEN>"
-4. Run: npx api2cli link <app> --openclaw
-5. Verify: <app>-cli auth test && <app>-cli --help
-```
-
-## How the Agent Uses CLIs
-
-Once linked, the OpenClaw agent discovers CLIs through `--help` navigation:
-
-```
-<app>-cli --help              → list resources
-<app>-cli <resource> --help   → list actions
-<app>-cli <resource> <action> --help → exact flags
-```
-
-No SKILL.md dump needed. The agent explores on demand, keeping token usage minimal.
-
 ## Publish Your Own CLI to ClawHub
 
-After creating a CLI with api2cli, publish it to ClawHub so other OpenClaw users can install it:
+After creating a CLI with api2cli, publish it so other OpenClaw users can install it:
 
 ```bash
 npx clawhub login
 npx clawhub publish ./skills/<app>-cli --slug <app>-cli
 ```
 
-Users can then install with `npx clawhub install <app>-cli`.
-
-## Link Commands
-
-```bash
-npx api2cli link <app> --openclaw          # single CLI
-npx api2cli link --all --openclaw          # all installed CLIs
-npx api2cli link <app> --skills-path /path # custom directory
-```
+Users install with `npx clawhub install <app>-cli`.
