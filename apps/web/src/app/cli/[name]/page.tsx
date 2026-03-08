@@ -54,10 +54,10 @@ export default async function CliDetailPage({ params }: { params: Params }) {
       <main className="mx-auto max-w-4xl px-6 py-16">
         <div className="mb-10">
           <Link
-            href="/#registry"
+            href="/cli"
             className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            &larr; Back to registry
+            &larr; Back to CLIs
           </Link>
           <div className="mt-4 flex items-start gap-4">
             {skill.authorGithub ? (

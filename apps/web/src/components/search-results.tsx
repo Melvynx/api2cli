@@ -100,7 +100,7 @@ export function SearchResults({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm font-semibold">
-                  {skill.name.endsWith("-cli") ? skill.name : `${skill.name}-cli`}
+                  {skill.displayName}
                 </span>
                 {skill.verified && (
                   <Badge

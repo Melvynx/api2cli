@@ -10,12 +10,12 @@ import { RegistrySearch } from "@/components/registry-search";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "CLI Registry - api2cli",
+  title: "CLIs - api2cli",
   description: "Browse community-built CLI wrappers for REST APIs. Install any CLI in seconds with npx api2cli install.",
-  alternates: { canonical: "https://api2cli.dev/registry" },
+  alternates: { canonical: "https://api2cli.dev/cli" },
 };
 
-export default async function RegistryPage() {
+export default async function CliListPage() {
   const allSkills = await db
     .select()
     .from(skills)
@@ -26,10 +26,10 @@ export default async function RegistryPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-6xl px-6 pb-24 pt-12">
-        <section id="registry">
+        <section id="cli">
           <div className="mb-8">
             <h1 className="font-[family-name:var(--font-geist-pixel-square)] text-4xl font-bold tracking-tight">
-              CLI Registry
+              CLIs
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
               {allSkills.length} CLI{allSkills.length !== 1 ? "s" : ""} built by the community

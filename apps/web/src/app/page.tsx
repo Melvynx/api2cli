@@ -5,7 +5,18 @@ import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { AddCliDialog } from "@/components/add-cli-dialog";
+<<<<<<< HEAD
 import { RegistryContent } from "@/components/registry-content";
+=======
+import {
+  OpenClawSection,
+  CliVsMcpSection,
+  CliIsNewSkillSection,
+  HowItWorksSection,
+  UniversalSection,
+  FinalCtaSection,
+} from "@/components/landing-sections";
+>>>>>>> 2edb422 (add)
 
 export const revalidate = 60;
 
@@ -20,6 +31,13 @@ export default async function Home() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <Hero />
+
+      <OpenClawSection />
+      <HowItWorksSection />
+      <CliVsMcpSection />
+      <CliIsNewSkillSection />
+      <UniversalSection />
+
       <main className="mx-auto max-w-6xl px-6 pb-24">
         <section id="registry" className="pt-12">
           <div className="mb-6 flex items-end justify-between">
@@ -35,12 +53,47 @@ export default async function Home() {
             <AddCliDialog />
           </div>
 
+<<<<<<< HEAD
           <RegistryContent
             initialSkills={allSkills}
             categories={CATEGORIES as unknown as { value: string; label: string; icon: string }[]}
           />
+=======
+          <RegistrySearch />
+          <div className="mt-4" />
+          <CategoryFilter
+            categories={
+              CATEGORIES as unknown as {
+                value: string;
+                label: string;
+                icon: string;
+              }[]
+            }
+          />
+          <div className="mt-6" />
+
+          {allSkills.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card/50 py-20 text-center">
+              <div className="text-4xl">📦</div>
+              <p className="mt-4 font-mono text-sm text-muted-foreground">
+                No CLIs published yet. Be the first!
+              </p>
+              <pre className="mx-auto mt-4 inline-block rounded-xl bg-muted px-5 py-3 font-mono text-xs text-muted-foreground">
+                npx api2cli create my-api
+              </pre>
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {allSkills.map((skill) => (
+                <SkillCard key={skill.id} skill={skill} />
+              ))}
+            </div>
+          )}
+>>>>>>> 2edb422 (add)
         </section>
       </main>
+
+      <FinalCtaSection />
       <Footer />
     </div>
   );

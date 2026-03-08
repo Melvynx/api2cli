@@ -138,24 +138,23 @@ export async function POST(request: Request) {
     let description = repoData.description || "";
     let skillName = repo
       .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-cli$/, "");
+      .replace(/[^a-z0-9-]/g, "-");
 
     if (skillMd) {
       const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
       if (frontmatterMatch) {
         const nameMatch = frontmatterMatch[1].match(/name:\s*(.+)/);
         const descMatch = frontmatterMatch[1].match(/description:\s*(.+)/);
-        if (nameMatch) skillName = nameMatch[1].trim().replace(/-cli$/, "");
+        if (nameMatch) skillName = nameMatch[1].trim();
         if (descMatch) description = descMatch[1].trim();
       }
     }
 
-    const rawDisplayName =
-      packageJson?.name ||
-      repoData.name ||
-      repo;
-    const displayName = rawDisplayName.replace(/(-cli)+$/, "-cli");
+    if (!skillName.endsWith("-cli")) {
+      skillName = `${skillName}-cli`;
+    }
+
+    const displayName = (repoData.name || repo).replace(/(-cli)+$/, "-cli");
 
     // Determine category
     const topics: string[] = repoData.topics || [];
