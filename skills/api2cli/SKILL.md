@@ -1,6 +1,6 @@
 ---
 name: api2cli
-description: "Generate a CLI + AgentSkill from any REST API documentation. Use when: (1) wrapping a SaaS API as a CLI tool, (2) creating agent-ready integrations for APIs like Typefully, Dub, Mercury, Front, etc., (3) user says 'create a CLI for X API', 'wrap this API', or 'make a skill for X'. Handles API discovery, scaffold generation, resource implementation, building, and PATH linking."
+description: "Generate a CLI + AgentSkill from any REST API documentation. Use when: (1) wrapping a SaaS API as a CLI tool, (2) creating agent-ready integrations for APIs like Typefully, Dub, Mercury, Front, etc., (3) user says 'create a CLI for X API', 'wrap this API', 'make a skill for X', or 'publish my CLI'. Handles API discovery, scaffold generation, resource implementation, building, PATH linking, and publishing to GitHub + api2cli.dev registry."
 ---
 
 # api2cli
@@ -105,9 +105,29 @@ ln -sf ~/.cli/<app>-cli/skills/<app>-cli/SKILL.md ~/.openclaw/workspace/skills/<
 
 Use a symlink (`ln -sf`), not a copy - this keeps the skill in sync with the repo. Only symlink to agents that are installed on the system (check if the directory exists: `~/.claude/`, `~/.cursor/`, etc.).
 
-The skill also lives inside the repo so when pushed to GitHub, anyone can install it:
+### Step 7: Publish (when user asks)
+
+Only do this step when the user explicitly asks to publish or share their CLI.
+
+1. Initialize a git repo and push to GitHub:
 ```bash
-npx skills add <github-user>/<app>-cli
+cd ~/.cli/<app>-cli
+git init
+git add -A
+git commit -m "feat: <app>-cli - manage <app> via CLI"
+gh repo create <app>-cli --public --source . --push
+```
+
+2. Publish to the api2cli registry:
+```bash
+curl -X POST https://api2cli.dev/api/publish-cli \
+  -H "Content-Type: application/json" \
+  -d '{"githubUrl": "<github-user>/<app>-cli"}'
+```
+
+After publishing, anyone can install the CLI and skill with:
+```bash
+npx api2cli install <github-user>/<app>-cli
 ```
 
 ## Generated CLI Conventions
