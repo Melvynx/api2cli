@@ -20,6 +20,7 @@ export const skills = pgTable("skills", {
   openapiUrl: text("openapi_url"),
   npmPackage: text("npm_package"), // @api2cli/typefully
   githubRepo: text("github_repo"),
+  readme: text("readme"),
   resources: jsonb("resources").$type<ResourceDef[]>(),
   version: text("version").default("0.1.0"),
   downloads: integer("downloads").default(0),

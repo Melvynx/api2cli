@@ -42,12 +42,20 @@ export function SkillCard({ skill }: { skill: Skill }) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted font-mono text-xs font-bold transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                {skill.displayName.slice(0, 2).toUpperCase()}
-              </div>
+              {skill.authorGithub ? (
+                <img
+                  src={`https://github.com/${skill.authorGithub}.png?size=40`}
+                  alt={skill.authorGithub}
+                  className="h-10 w-10 rounded-lg"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted font-mono text-xs font-bold transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  {skill.displayName.slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h3 className="font-mono text-sm font-semibold leading-tight">
-                  {skill.name}-cli
+                  {skill.displayName}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   v{skill.version}

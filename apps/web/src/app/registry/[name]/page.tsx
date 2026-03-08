@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { skills } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/navbar";
@@ -11,7 +11,7 @@ export const revalidate = 60;
 
 type Params = Promise<{ name: string }>;
 
-export default async function SkillPage({ params }: { params: Params }) {
+export default async function RegistryPage({ params }: { params: Params }) {
   const { name } = await params;
 
   const [skill] = await db
@@ -22,28 +22,29 @@ export default async function SkillPage({ params }: { params: Params }) {
 
   if (!skill) notFound();
 
-  const resources = (skill.resources ?? []) as {
-    name: string;
-    description?: string;
-    actions: {
-      name: string;
-      method: string;
-      path: string;
-      description?: string;
-    }[];
-  }[];
+  // Increment view counter
+  db.update(skills)
+    .set({ downloads: sql`${skills.downloads} + 1` })
+    .where(eq(skills.name, name))
+    .execute()
+    .catch(() => {});
+
+  const repoUrl = skill.githubRepo?.startsWith("http")
+    ? skill.githubRepo
+    : skill.githubRepo
+      ? `https://github.com/${skill.githubRepo}`
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-4xl px-6 py-16">
-        {/* Header */}
         <div className="mb-10">
           <Link
-            href="/"
+            href="/#registry"
             className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            ← Back to registry
+            &larr; Back to registry
           </Link>
           <div className="mt-4 flex items-start gap-4">
             {skill.authorGithub ? (
@@ -81,32 +82,12 @@ export default async function SkillPage({ params }: { params: Params }) {
             Install
           </h2>
           <pre className="rounded-xl border border-border bg-card p-4 font-mono text-sm">
-            <span className="text-muted-foreground">$ </span>npx api2cli
-            install {skill.name}
+            <span className="text-muted-foreground">$ </span>
+            {`npx api2cli install ${skill.name}`}
           </pre>
         </section>
 
-        {/* Quick start */}
-        <section className="mb-10">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Quick Start
-          </h2>
-          <div className="space-y-2">
-            <pre className="rounded-xl border border-border bg-card p-4 font-mono text-sm">
-              <span className="text-muted-foreground"># Auth</span>
-              {"\n"}
-              <span className="text-muted-foreground">$ </span>
-              {skill.name}-cli auth set &quot;your-token&quot;
-              {"\n\n"}
-              <span className="text-muted-foreground"># Test</span>
-              {"\n"}
-              <span className="text-muted-foreground">$ </span>
-              {skill.name}-cli --help
-            </pre>
-          </div>
-        </section>
-
-        {/* Info grid */}
+        {/* Details */}
         <section className="mb-10">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Details
@@ -124,59 +105,65 @@ export default async function SkillPage({ params }: { params: Params }) {
                 <span className="font-mono">{skill.version}</span>
               </div>
             )}
-            {skill.apiBaseUrl && (
+            {skill.authorGithub && (
               <div>
-                <span className="text-muted-foreground">Base URL: </span>
-                <span className="font-mono">{skill.apiBaseUrl}</span>
-              </div>
-            )}
-            {skill.npmPackage && (
-              <div>
-                <span className="text-muted-foreground">npm: </span>
-                <span className="font-mono">{skill.npmPackage}</span>
-              </div>
-            )}
-            {skill.docsUrl && (
-              <div className="col-span-full">
-                <span className="text-muted-foreground">Docs: </span>
+                <span className="text-muted-foreground">Author: </span>
                 <a
-                  href={skill.docsUrl}
+                  href={`https://github.com/${skill.authorGithub}`}
                   target="_blank"
                   className="font-mono text-primary underline"
                 >
-                  {skill.docsUrl}
+                  {skill.authorGithub}
                 </a>
               </div>
             )}
-            {skill.githubRepo && (
+            {skill.downloads != null && (
+              <div>
+                <span className="text-muted-foreground">Views: </span>
+                <span className="font-mono">{skill.downloads.toLocaleString()}</span>
+              </div>
+            )}
+            {repoUrl && (
               <div className="col-span-full">
                 <span className="text-muted-foreground">Repo: </span>
                 <a
-                  href={skill.githubRepo.startsWith("http") ? skill.githubRepo : `https://github.com/${skill.githubRepo}`}
+                  href={repoUrl}
                   target="_blank"
                   className="font-mono text-primary underline"
                 >
-                  {skill.githubRepo}
+                  {repoUrl}
                 </a>
               </div>
             )}
           </div>
         </section>
 
+        {/* README */}
+        {skill.readme && (
+          <section className="mb-10">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              README
+            </h2>
+            <pre className="whitespace-pre-wrap rounded-xl border border-border bg-card p-6 font-mono text-sm leading-relaxed text-foreground/80">
+              {skill.readme}
+            </pre>
+          </section>
+        )}
+
         {/* Resources / endpoints */}
-        {resources.length > 0 && (
+        {(skill.resources as { name: string; description?: string; actions: { name: string; method: string; path: string; description?: string }[] }[] ?? []).length > 0 && (
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Resources
             </h2>
             <div className="space-y-4">
-              {resources.map((resource) => (
+              {(skill.resources as { name: string; description?: string; actions: { name: string; method: string; path: string; description?: string }[] }[]).map((resource) => (
                 <div
                   key={resource.name}
                   className="rounded-xl border border-border bg-card p-4"
                 >
                   <h3 className="mb-1 font-mono text-sm font-semibold">
-                    {skill.name}-cli {resource.name}
+                    {resource.name}
                   </h3>
                   {resource.description && (
                     <p className="mb-3 text-sm text-muted-foreground">
@@ -199,7 +186,7 @@ export default async function SkillPage({ params }: { params: Params }) {
                           {action.path}
                         </span>
                         <span className="text-foreground/70">
-                          → {resource.name} {action.name}
+                          {action.name}
                         </span>
                       </div>
                     ))}

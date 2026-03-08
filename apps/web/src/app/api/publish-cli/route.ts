@@ -184,6 +184,7 @@ export async function POST(request: Request) {
       authType,
       version: packageJson?.version || "1.0.0",
       githubRepo: `https://github.com/${owner}/${repo}`,
+      readme: readme || null,
       authorGithub: owner,
       authorName: repoData.owner?.login || owner,
       tags: topics.length > 0 ? topics : [category],
