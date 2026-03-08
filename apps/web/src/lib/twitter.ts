@@ -6,7 +6,15 @@ function getTwitterClient(): TwitterApi | null {
   const accessToken = process.env.TWITTER_ACCESS_TOKEN;
   const accessSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
-  if (!apiKey || !apiSecret || !accessToken || !accessSecret) return null;
+  if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
+    console.warn("Twitter: missing env vars, skipping tweet", {
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret,
+      hasAccessToken: !!accessToken,
+      hasAccessSecret: !!accessSecret,
+    });
+    return null;
+  }
 
   return new TwitterApi({
     appKey: apiKey,
@@ -20,7 +28,10 @@ export async function tweetNewCLI(cli: {
   name: string;
   description: string;
 }) {
-  if (process.env.NODE_ENV !== "production") return;
+  if (process.env.NODE_ENV !== "production") {
+    console.log("Twitter: skipping tweet (not production)");
+    return;
+  }
 
   const client = getTwitterClient();
   if (!client) return;
@@ -34,6 +45,7 @@ npx api2cli install ${cli.name}
 
   try {
     await client.v2.tweet(tweet);
+    console.log(`Twitter: tweeted about ${cli.name}`);
   } catch (error) {
     console.error("Tweet failed (non-blocking):", error);
   }

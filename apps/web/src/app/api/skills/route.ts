@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { skills, type NewSkill } from "@/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { tweetNewCLI } from "@/lib/twitter";
 
 // GET /api/skills — list all skills, optional search
 export async function GET(req: NextRequest) {
@@ -91,6 +92,12 @@ export async function POST(req: NextRequest) {
     }
 
     const [created] = await db.insert(skills).values(body).returning();
+
+    tweetNewCLI({
+      name: created.name,
+      description: created.description ?? "",
+    }).catch(() => {});
+
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
