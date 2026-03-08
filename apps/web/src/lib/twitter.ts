@@ -55,7 +55,13 @@ npx api2cli install ${cli.name}
   try {
     const result = await client.v2.tweet(tweet);
     console.log("[twitter] success! tweet id:", result.data.id);
-  } catch (error) {
+  } catch (error: any) {
     console.error("[twitter] tweet FAILED:", error);
+    if (error?.data) {
+      console.error("[twitter] error data:", JSON.stringify(error.data));
+    }
+    if (error?.code) {
+      console.error("[twitter] error code:", error.code);
+    }
   }
 }
