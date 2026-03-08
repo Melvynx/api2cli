@@ -765,21 +765,9 @@ export function FinalCtaSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden border-t border-border/30 py-28 md:py-36"
+      className="py-16 md:py-20"
     >
-      {/* Big glow */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2"
-        style={{
-          width: "900px",
-          height: "500px",
-          background:
-            "radial-gradient(ellipse at center, rgba(213,71,71,0.12) 0%, transparent 70%)",
-          filter: "blur(80px)",
-        }}
-      />
-
-      <div className="relative mx-auto max-w-md px-6 text-center">
+      <div className="mx-auto max-w-md px-6 text-center">
         <div
           className={`transition-all duration-1000 ${inView ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"}`}
         >
