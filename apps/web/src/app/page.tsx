@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { skills, CATEGORIES } from "@/db/schema";
+import { skills } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
@@ -50,10 +50,7 @@ export default async function Home() {
             <AddCliDialog />
           </div>
 
-          <RegistryContent
-            initialSkills={allSkills}
-            categories={CATEGORIES as unknown as { value: string; label: string; icon: string }[]}
-          />
+          <RegistryContent initialSkills={allSkills} />
         </section>
       </main>
 

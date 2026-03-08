@@ -7,15 +7,16 @@ function getTwitterClient(): TwitterApi | null {
   const accessSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
   if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
-    console.warn("Twitter: missing env vars, skipping tweet", {
-      hasApiKey: !!apiKey,
-      hasApiSecret: !!apiSecret,
-      hasAccessToken: !!accessToken,
-      hasAccessSecret: !!accessSecret,
+    console.warn("[twitter] missing env vars:", {
+      TWITTER_API_KEY: apiKey ? "set" : "MISSING",
+      TWITTER_API_SECRET: apiSecret ? "set" : "MISSING",
+      TWITTER_ACCESS_TOKEN: accessToken ? "set" : "MISSING",
+      TWITTER_ACCESS_TOKEN_SECRET: accessSecret ? "set" : "MISSING",
     });
     return null;
   }
 
+  console.log("[twitter] client created successfully");
   return new TwitterApi({
     appKey: apiKey,
     appSecret: apiSecret,
@@ -28,13 +29,19 @@ export async function tweetNewCLI(cli: {
   name: string;
   description: string;
 }) {
+  console.log("[twitter] tweetNewCLI called for:", cli.name);
+  console.log("[twitter] NODE_ENV:", process.env.NODE_ENV);
+
   if (process.env.NODE_ENV !== "production") {
-    console.log("Twitter: skipping tweet (not production)");
+    console.log("[twitter] skipping — not production");
     return;
   }
 
   const client = getTwitterClient();
-  if (!client) return;
+  if (!client) {
+    console.warn("[twitter] no client — aborting tweet");
+    return;
+  }
 
   const tweet = `🆕 New CLI published: ${cli.name}
 ${cli.description}
@@ -43,10 +50,12 @@ npx api2cli install ${cli.name}
 
 #api2cli #devtools`;
 
+  console.log("[twitter] sending tweet:", tweet);
+
   try {
-    await client.v2.tweet(tweet);
-    console.log(`Twitter: tweeted about ${cli.name}`);
+    const result = await client.v2.tweet(tweet);
+    console.log("[twitter] success! tweet id:", result.data.id);
   } catch (error) {
-    console.error("Tweet failed (non-blocking):", error);
+    console.error("[twitter] tweet FAILED:", error);
   }
 }

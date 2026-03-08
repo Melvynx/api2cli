@@ -84,6 +84,20 @@ export default async function CliDetailPage({ params }: { params: Params }) {
               <p className="mt-1 text-sm text-muted-foreground">
                 {skill.description}
               </p>
+              {/* Tags */}
+              {((skill.tags as string[]) ?? []).length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {((skill.tags as string[]) ?? []).map((tag) => (
+                    <Link
+                      key={tag}
+                      href={`/cli?tag=${encodeURIComponent(tag)}`}
+                      className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

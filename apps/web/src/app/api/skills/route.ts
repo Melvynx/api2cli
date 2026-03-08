@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { skills, type NewSkill } from "@/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { tweetNewCLI } from "@/lib/twitter";
 
@@ -8,6 +8,7 @@ import { tweetNewCLI } from "@/lib/twitter";
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("q");
   const category = req.nextUrl.searchParams.get("category");
+  const tag = req.nextUrl.searchParams.get("tag");
   const sort = req.nextUrl.searchParams.get("sort") ?? "popular";
 
   let q = db.select().from(skills).$dynamic();
@@ -24,23 +25,23 @@ export async function GET(req: NextRequest) {
     q = q.orderBy(desc(skills.createdAt));
   }
 
-  const allSkills = await q.limit(100);
+  let allSkills = await q.limit(100);
 
-  // Client-side search with relevance scoring
+  // Filter by tag
+  if (tag && tag !== "all") {
+    allSkills = allSkills.filter((skill) => {
+      const tags = (skill.tags as string[]) ?? [];
+      return tags.some((t) => t.toLowerCase() === tag.toLowerCase());
+    });
+  }
+
+  // Search with relevance scoring
   if (query && query.trim()) {
     const terms = query.toLowerCase().split(/\s+/);
     const scored = allSkills
       .map((skill) => {
         let score = 0;
-        const searchable = [
-          skill.name,
-          skill.displayName,
-          skill.description ?? "",
-          skill.category ?? "",
-          ...(skill.tags as string[] ?? []),
-        ]
-          .join(" ")
-          .toLowerCase();
+        const readmeLower = skill.readme?.toLowerCase() ?? "";
 
         for (const term of terms) {
           if (skill.name.toLowerCase() === term) score += 50;
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
           if (skill.category?.toLowerCase().includes(term)) score += 15;
           if ((skill.tags as string[] ?? []).some((t: string) => t.toLowerCase().includes(term)))
             score += 25;
-          if (searchable.includes(term)) score += 5;
+          if (readmeLower.includes(term)) score += 10;
         }
 
         return { ...skill, relevance: Math.min(score, 100) };
@@ -93,10 +94,16 @@ export async function POST(req: NextRequest) {
 
     const [created] = await db.insert(skills).values(body).returning();
 
-    tweetNewCLI({
-      name: created.name,
-      description: created.description ?? "",
-    }).catch(() => {});
+    console.log("[skills] new skill created, about to tweet:", created.name);
+    try {
+      await tweetNewCLI({
+        name: created.name,
+        description: created.description ?? "",
+      });
+      console.log("[skills] tweetNewCLI completed for:", created.name);
+    } catch (err) {
+      console.error("[skills] tweetNewCLI threw:", err);
+    }
 
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
   } catch (error) {

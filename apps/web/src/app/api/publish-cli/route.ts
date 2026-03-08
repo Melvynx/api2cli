@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { skills } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { tweetNewCLI } from "@/lib/twitter";
+import { guessTags } from "@/lib/tags";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
@@ -199,6 +200,8 @@ export async function POST(request: Request) {
       .where(eq(skills.name, skillName))
       .limit(1);
 
+    const tags = guessTags(description, topics, readme, skillMd, category, authType);
+
     const skillData = {
       name: skillName,
       displayName,
@@ -210,7 +213,7 @@ export async function POST(request: Request) {
       readme: readme || null,
       authorGithub: owner,
       authorName: repoData.owner?.login || owner,
-      tags: topics.length > 0 ? topics : [category],
+      tags,
       verified: false,
     };
 
@@ -224,8 +227,15 @@ export async function POST(request: Request) {
       await db.update(skills).set(skillData).where(eq(skills.name, skillName));
     }
 
+    console.log("[publish-cli] isNew:", isNew, "skillName:", skillName);
     if (isNew) {
-      tweetNewCLI({ name: skillName, description }).catch(() => {});
+      console.log("[publish-cli] about to call tweetNewCLI for:", skillName);
+      try {
+        await tweetNewCLI({ name: skillName, description });
+        console.log("[publish-cli] tweetNewCLI completed for:", skillName);
+      } catch (err) {
+        console.error("[publish-cli] tweetNewCLI threw:", err);
+      }
     }
 
     return NextResponse.json({

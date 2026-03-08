@@ -6,11 +6,23 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Skill } from "@/db/schema";
 import Link from "next/link";
 
-export function SkillCard({ skill }: { skill: Skill }) {
+const HIDDEN_TAGS = new Set(["cli", "open-source"]);
+
+export function SkillCard({
+  skill,
+  onTagClick,
+}: {
+  skill: Skill;
+  onTagClick?: (tag: string) => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [upvotes, setUpvotes] = useState(skill.upvotes ?? 0);
   const [downvotes, setDownvotes] = useState(skill.downvotes ?? 0);
   const installCmd = `npx api2cli install ${skill.name}`;
+
+  const tags = ((skill.tags as string[]) ?? []).filter(
+    (t) => !HIDDEN_TAGS.has(t)
+  );
 
   const copyInstall = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -34,6 +46,12 @@ export function SkillCard({ skill }: { skill: Skill }) {
       if (direction === "up") setUpvotes((v) => v - 1);
       else setDownvotes((v) => v - 1);
     }
+  };
+
+  const handleTagClick = (tag: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTagClick?.(tag);
   };
 
   const popularityColor =
@@ -69,34 +87,47 @@ export function SkillCard({ skill }: { skill: Skill }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              {skill.verified && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] font-medium uppercase tracking-wider"
-                >
-                  ✓
-                </Badge>
-              )}
-              {skill.category && (
-                <Badge variant="outline" className="text-[10px]">
-                  {skill.category}
-                </Badge>
-              )}
-            </div>
+            {skill.verified && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] font-medium uppercase tracking-wider"
+              >
+                ✓
+              </Badge>
+            )}
           </div>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col">
           {skill.description && (
-            <p className="mb-4 line-clamp-1 flex-1 text-sm text-muted-foreground">
+            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
               {skill.description}
             </p>
+          )}
+
+          {/* Tags */}
+          {tags.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1">
+              {tags.slice(0, 4).map((tag) => (
+                <button
+                  key={tag}
+                  onClick={(e) => handleTagClick(tag, e)}
+                  className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  {tag}
+                </button>
+              ))}
+              {tags.length > 4 && (
+                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground/50">
+                  +{tags.length - 4}
+                </span>
+              )}
+            </div>
           )}
 
           {/* Install command */}
           <button
             onClick={copyInstall}
-            className="mb-3 flex w-full items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 font-mono text-xs transition-colors hover:bg-muted"
+            className="mb-3 mt-auto flex w-full items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 font-mono text-xs transition-colors hover:bg-muted"
           >
             <span className="text-muted-foreground">$</span>
             <span className="flex-1 truncate text-left">{installCmd}</span>

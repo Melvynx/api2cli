@@ -6,26 +6,35 @@ import { SkillCard } from "@/components/skill-card";
 import type { Skill } from "@/db/schema";
 
 type ScoredSkill = Skill & { relevance?: number };
+type TagInfo = { tag: string; count: number };
 
 export function RegistryContent({
   initialSkills,
-  categories,
 }: {
   initialSkills: Skill[];
-  categories: { value: string; label: string; icon: string }[];
+  categories?: { value: string; label: string; icon: string }[];
 }) {
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeTag, setActiveTag] = useState("all");
   const [results, setResults] = useState<ScoredSkill[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [tags, setTags] = useState<TagInfo[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const search = useCallback(
-    async (q: string, category: string) => {
-      const hasQuery = q.trim().length > 0;
-      const hasCategory = category !== "all";
+  // Fetch tags dynamically
+  useEffect(() => {
+    fetch("/api/tags")
+      .then((res) => res.json())
+      .then((data) => setTags(data.data ?? []))
+      .catch(() => {});
+  }, []);
 
-      if (!hasQuery && !hasCategory) {
+  const search = useCallback(
+    async (q: string, tag: string) => {
+      const hasQuery = q.trim().length > 0;
+      const hasTag = tag !== "all";
+
+      if (!hasQuery && !hasTag) {
         setResults(null);
         setLoading(false);
         return;
@@ -35,7 +44,7 @@ export function RegistryContent({
       try {
         const params = new URLSearchParams();
         if (hasQuery) params.set("q", q.trim());
-        if (hasCategory) params.set("category", category);
+        if (hasTag) params.set("tag", tag);
         const res = await fetch(`/api/skills?${params.toString()}`);
         const data = await res.json();
         setResults(data.data ?? []);
@@ -49,21 +58,29 @@ export function RegistryContent({
   );
 
   const debouncedSearch = useCallback(
-    (q: string, category: string) => {
+    (q: string, tag: string) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => search(q, category), 300);
+      debounceRef.current = setTimeout(() => search(q, tag), 300);
     },
     [search]
   );
 
   useEffect(() => {
-    debouncedSearch(query, activeCategory);
+    debouncedSearch(query, activeTag);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, activeCategory, debouncedSearch]);
+  }, [query, activeTag, debouncedSearch]);
+
+  const handleTagClick = (tag: string) => {
+    setActiveTag(tag === activeTag ? "all" : tag);
+  };
 
   const displayedSkills = results ?? initialSkills;
+
+  // Filter out generic tags for the filter bar, keep only meaningful ones
+  const HIDDEN_TAGS = new Set(["cli", "open-source"]);
+  const visibleTags = tags.filter((t) => !HIDDEN_TAGS.has(t.tag));
 
   return (
     <>
@@ -98,33 +115,37 @@ export function RegistryContent({
         )}
       </div>
 
-      {/* Categories */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setActiveCategory("all")}
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-            activeCategory === "all"
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-          }`}
-        >
-          All
-        </button>
-        {categories.map((cat) => (
+      {/* Tags */}
+      {visibleTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
           <button
-            key={cat.value}
-            onClick={() => setActiveCategory(cat.value)}
+            onClick={() => setActiveTag("all")}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-              activeCategory === cat.value
+              activeTag === "all"
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
-            <span>{cat.icon}</span>
-            {cat.label}
+            All
           </button>
-        ))}
-      </div>
+          {visibleTags.map(({ tag, count }) => (
+            <button
+              key={tag}
+              onClick={() => handleTagClick(tag)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                activeTag === tag
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+              }`}
+            >
+              {tag}
+              <span className={`text-[10px] ${activeTag === tag ? "text-primary-foreground/70" : "text-muted-foreground/50"}`}>
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Results */}
       <div className="mt-6">
@@ -133,6 +154,7 @@ export function RegistryContent({
             <div className="text-4xl">🔍</div>
             <p className="mt-4 font-mono text-sm text-muted-foreground">
               No CLIs found{query ? ` for "${query}"` : ""}
+              {activeTag !== "all" ? ` with tag "${activeTag}"` : ""}
             </p>
             {query && (
               <p className="mt-2 text-sm text-muted-foreground">
@@ -149,7 +171,7 @@ export function RegistryContent({
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {displayedSkills.map((skill) => (
-              <SkillCard key={skill.id} skill={skill} />
+              <SkillCard key={skill.id} skill={skill} onTagClick={handleTagClick} />
             ))}
           </div>
         )}
