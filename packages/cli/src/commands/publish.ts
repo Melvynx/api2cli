@@ -16,12 +16,16 @@ function askQuestion(question: string): Promise<string> {
 
 export async function publishToMarketplace(
   githubUrl: string,
+  category?: string,
 ): Promise<boolean> {
   try {
+    const payload: Record<string, string> = { githubUrl };
+    if (category) payload.category = category;
+
     const res = await fetch(`${API_URL}/api/publish-cli`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ githubUrl }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
@@ -44,13 +48,19 @@ export async function publishToMarketplace(
   }
 }
 
+const VALID_CATEGORIES = [
+  "social", "finance", "devtools", "marketing", "productivity",
+  "communication", "analytics", "ai", "ecommerce", "other",
+];
+
 export const publishCommand = new Command("publish")
   .description("Publish a CLI to the api2cli marketplace")
   .argument("<app>", "CLI to publish")
   .option("--github <url>", "GitHub repo URL (e.g. user/repo)")
+  .option("--category <cat>", `Category: ${VALID_CATEGORIES.join(", ")}`)
   .addHelpText(
     "after",
-    "\nExamples:\n  api2cli publish typefully --github user/typefully-cli\n  api2cli publish dub",
+    `\nExamples:\n  api2cli publish typefully --github user/typefully-cli --category social\n  api2cli publish dub --category marketing`,
   )
   .action(async (app: string, opts) => {
     const cliDir = getCliDir(app);
@@ -73,8 +83,14 @@ export const publishCommand = new Command("publish")
       return;
     }
 
+    const category = opts.category?.toLowerCase();
+    if (category && !VALID_CATEGORIES.includes(category)) {
+      console.error(`${pc.red("✗")} Invalid category "${category}". Valid: ${VALID_CATEGORIES.join(", ")}`);
+      process.exit(1);
+    }
+
     console.log(
       `\nPublishing ${pc.bold(`${app}-cli`)} to marketplace...\n`,
     );
-    await publishToMarketplace(githubUrl);
+    await publishToMarketplace(githubUrl, category);
   });

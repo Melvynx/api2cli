@@ -58,30 +58,39 @@ async function fetchRawFile(owner: string, repo: string, path: string) {
   return res.text();
 }
 
+const VALID_CATEGORIES = [
+  "social", "finance", "devtools", "marketing", "productivity",
+  "communication", "analytics", "ai", "ecommerce", "other",
+];
+
 function guessCategory(
   description: string,
-  topics: string[]
+  topics: string[],
+  readme?: string | null,
+  skillMd?: string | null,
 ): string {
-  const text = `${description} ${topics.join(" ")}`.toLowerCase();
+  const text = `${description} ${topics.join(" ")} ${readme ?? ""} ${skillMd ?? ""}`.toLowerCase();
 
-  if (text.match(/social|twitter|tweet|mastodon|bluesky|instagram/))
+  if (text.match(/social|twitter|tweet|mastodon|bluesky|instagram|linkedin|threads/))
     return "social";
-  if (text.match(/finance|bank|payment|stripe|invoice|billing/))
+  if (text.match(/finance|bank|payment|stripe|invoice|billing|mercury|accounting/))
     return "finance";
-  if (text.match(/dev|developer|code|git|ci|cd|deploy|build|test/))
+  if (text.match(/devtools|developer|github|ci\/cd|deploy|build|vercel|cloudflare/))
     return "devtools";
-  if (text.match(/marketing|email|newsletter|seo|ads|campaign/))
+  if (text.match(/marketing|email|newsletter|seo|ads|campaign|typefully|mailchimp/))
     return "marketing";
-  if (text.match(/productivity|task|todo|note|calendar|time/))
+  if (text.match(/productivity|task|todo|note|calendar|time|bookmark|notion/))
     return "productivity";
-  if (text.match(/chat|message|slack|discord|telegram|communication/))
+  if (text.match(/chat|message|slack|discord|telegram|communication|support/))
     return "communication";
-  if (text.match(/analytics|metric|monitor|log|track|dashboard/))
+  if (text.match(/analytics|metric|monitor|log|track|dashboard|plausible/))
     return "analytics";
-  if (text.match(/ai|ml|model|llm|gpt|claude|openai|machine learning/))
+  if (text.match(/\bai\b|ml\b|model|llm|gpt|claude|openai|machine learning/))
     return "ai";
-  if (text.match(/ecommerce|shop|store|product|order|cart/))
+  if (text.match(/ecommerce|shop|store|product|order|cart|shopify/))
     return "ecommerce";
+  if (text.match(/flight|airport|airline|aviation|travel/))
+    return "other";
 
   return "other";
 }
@@ -89,7 +98,7 @@ function guessCategory(
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { githubUrl } = body;
+    const { githubUrl, category: bodyCategory } = body;
 
     if (!githubUrl) {
       return NextResponse.json(
@@ -140,13 +149,20 @@ export async function POST(request: Request) {
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, "-");
 
+    let skillCategory: string | null = null;
+
     if (skillMd) {
       const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
       if (frontmatterMatch) {
         const nameMatch = frontmatterMatch[1].match(/name:\s*(.+)/);
         const descMatch = frontmatterMatch[1].match(/description:\s*(.+)/);
+        const catMatch = frontmatterMatch[1].match(/category:\s*(.+)/);
         if (nameMatch) skillName = nameMatch[1].trim();
         if (descMatch) description = descMatch[1].trim();
+        if (catMatch) {
+          const cat = catMatch[1].trim().toLowerCase();
+          if (VALID_CATEGORIES.includes(cat)) skillCategory = cat;
+        }
       }
     }
 
@@ -156,9 +172,12 @@ export async function POST(request: Request) {
 
     const displayName = (repoData.name || repo).replace(/(-cli)+$/, "-cli");
 
-    // Determine category
+    // Determine category: body > SKILL.md frontmatter > guessCategory
     const topics: string[] = repoData.topics || [];
-    const category = guessCategory(description, topics);
+    const validBodyCategory = bodyCategory && VALID_CATEGORIES.includes(bodyCategory.toLowerCase())
+      ? bodyCategory.toLowerCase()
+      : null;
+    const category = validBodyCategory || skillCategory || guessCategory(description, topics, readme, skillMd);
 
     // Determine auth type from README
     let authType = "bearer";
