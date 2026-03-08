@@ -799,7 +799,7 @@ export function FinalCtaSection() {
                 Create my first CLI
               </Link>
               <Link
-                href="#registry"
+                href="#cli"
                 className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-border bg-card/60 font-mono text-sm font-medium transition-colors hover:bg-card"
               >
                 Browse registry
