@@ -1,6 +1,6 @@
 {
   "name": "api2cli",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "Turn any REST API into a standardized, agent-ready CLI",
   "type": "module",
   "bin": {
