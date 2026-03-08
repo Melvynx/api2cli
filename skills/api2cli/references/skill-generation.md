@@ -6,8 +6,10 @@ After implementing resources, update the skill and README, then symlink the skil
 
 Edit `~/.cli/<app>-cli/skills/<app>-cli/SKILL.md`:
 
-1. Replace `{{RESOURCES_LIST}}` with comma-separated resource names (e.g. "drafts, links, accounts")
-2. Replace `{{RESOURCES_HELP}}` with the resource map (see format below)
+1. Update the description to include comma-separated resource names (e.g. "Manage typefully via CLI - drafts, links, accounts.")
+2. Replace the resources TODO comment with the resource map (see format below)
+
+Note: `{{RESOURCES_LIST}}` is auto-resolved from `src/resources/` during publishing. Only manual update is needed for the RESOURCES_HELP section.
 
 ## 2. Update the README
 

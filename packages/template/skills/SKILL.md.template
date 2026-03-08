@@ -1,7 +1,7 @@
 ---
 name: {{APP_NAME}}
-description: "Manage {{APP_NAME}} via CLI - {{RESOURCES_LIST}}. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
-category: {{CATEGORY}}
+description: "Manage {{APP_NAME}} via CLI. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
+category: other
 ---
 
 # {{APP_CLI}}
@@ -28,7 +28,7 @@ Always use `--json` flag when calling commands programmatically.
 
 ## Resources
 
-{{RESOURCES_HELP}}
+<!-- TODO: Add resource documentation after building your CLI -->
 
 ## Global Flags
 

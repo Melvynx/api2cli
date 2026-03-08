@@ -170,6 +170,27 @@ export async function POST(request: Request) {
       }
     }
 
+    // Resolve {{RESOURCES_LIST}} placeholder from src/resources/ directory
+    if (description.includes("{{RESOURCES_LIST}}")) {
+      const resourcesDir = await fetchGithub(`/repos/${owner}/${repo}/contents/src/resources`);
+      if (Array.isArray(resourcesDir)) {
+        const resourceNames = resourcesDir
+          .filter((f: { type: string; name: string }) => f.type === "dir" || f.name.endsWith(".ts"))
+          .map((f: { name: string }) => f.name.replace(/\.ts$/, ""))
+          .filter((n: string) => n !== "example" && n !== "index");
+        if (resourceNames.length > 0) {
+          description = description.replace("{{RESOURCES_LIST}}", resourceNames.join(", "));
+        } else {
+          description = description.replace(" - {{RESOURCES_LIST}}.", ".");
+        }
+      } else {
+        description = description.replace(" - {{RESOURCES_LIST}}.", ".");
+      }
+    }
+
+    // Strip surrounding quotes from description if present
+    description = description.replace(/^["']|["']$/g, "");
+
     if (!skillName.endsWith("-cli")) {
       skillName = `${skillName}-cli`;
     }

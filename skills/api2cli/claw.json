@@ -1,0 +1,11 @@
+{
+  "name": "api2cli",
+  "version": "1.0.0",
+  "description": "Install any REST API as a CLI. Browse 18+ ready-made CLIs or create your own.",
+  "author": "melvynx",
+  "license": "MIT",
+  "permissions": ["network", "shell", "filesystem"],
+  "entry": "SKILL.md",
+  "tags": ["cli", "api", "devtools", "automation", "rest-api"],
+  "models": ["claude-*"]
+}
