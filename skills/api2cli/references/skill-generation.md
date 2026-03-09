@@ -1,47 +1,162 @@
 # Finalize Skill and README
 
-After implementing resources, update the skill and README, then symlink the skill to agent directories.
+After implementing resources, the skill MUST be fully populated with real command documentation. A skill with TODO placeholders or missing resources is incomplete — do not skip this step.
 
-## 1. Update the SKILL.md
+## 1. Introspect the CLI
 
-Edit `~/.cli/<app>-cli/skills/<app>-cli/SKILL.md`:
+Run these commands to discover all resources, actions, and flags. This is the source of truth — never guess commands or flags.
 
-1. Update the description to include comma-separated resource names (e.g. "Manage typefully via CLI - drafts, links, accounts.")
-2. Replace the resources TODO comment with the resource map (see format below)
+```bash
+# Get the full list of resources
+<app>-cli --help
 
-Note: `{{RESOURCES_LIST}}` is auto-resolved from `src/resources/` during publishing. Only manual update is needed for the RESOURCES_HELP section.
+# For each resource, get all actions
+<app>-cli <resource> --help
 
-## 2. Update the README
+# For each action, get all flags
+<app>-cli <resource> <action> --help
+```
 
-Edit `~/.cli/<app>-cli/README.md`:
+Capture the output of every `--help` call. Use it to build the resource documentation below.
 
-1. Replace `{{RESOURCES_HELP}}` with the same resource map
-2. Replace `{{GITHUB_REPO}}` with the GitHub repo path (e.g. `Melvynx/typefully-cli`)
+## 2. Update the SKILL.md description
 
-## Resource map format
+The description in frontmatter is critical — it's what agents use to decide when to activate the skill.
 
-Run `<app>-cli <resource> --help` for each resource to get real flags. Use this format:
+**Requirements:**
+- List ALL resource names as a comma-separated list
+- Include trigger phrases specific to the API domain (what the user might say)
+- Include the API service name
+- Write in third person
+- Keep under 1024 chars
+
+**Format:**
+```yaml
+description: "Manage <Service> via CLI - <resource1>, <resource2>, <resource3>. Use when user mentions '<service>', '<trigger1>', '<trigger2>', or wants to interact with the <Service> API."
+```
+
+**Examples across different domains:**
+
+Social media:
+```yaml
+description: "Manage Typefully via CLI - me, social-sets, drafts, media, tags, queue. Use when user mentions 'typefully', 'create draft', 'schedule post', 'social media drafts', or wants to interact with the Typefully API."
+```
+
+Email:
+```yaml
+description: "Manage agentmail.to via CLI - inboxes, messages, threads, webhooks, pods, api-keys. Use when user mentions 'agentmail', 'email inbox', 'send email via agentmail', or wants to interact with the AgentMail API."
+```
+
+Banking:
+```yaml
+description: "Manage Mercury Banking via CLI - accounts, transactions, recipients, transfers, invoices. Use when user mentions 'mercury', 'bank balance', 'wire transfer', 'send payment', or wants to interact with the Mercury API."
+```
+
+Link management:
+```yaml
+description: "Manage Dub.co via CLI - links, domains, tags, folders, customers, analytics. Use when user mentions 'dub', 'shorten URL', 'create short link', 'link analytics', or wants to interact with the Dub API."
+```
+
+**Bad example:**
+```yaml
+description: "Manage typefully via CLI. Use when user mentions 'typefully' or wants to interact with the typefully API."
+```
+Missing resource list, no domain-specific triggers — an agent can't tell what this CLI does.
+
+## 3. Set the category
+
+Replace `{{CATEGORY}}` with the most fitting value:
+
+| Category | Use for |
+|----------|---------|
+| `social-media` | Twitter/X, LinkedIn, scheduling, drafts |
+| `email` | Inboxes, messages, newsletters, transactional |
+| `payments` | Billing, invoices, subscriptions, transfers |
+| `analytics` | Metrics, tracking, dashboards |
+| `devtools` | CI/CD, hosting, DNS, monitoring |
+| `crm` | Contacts, deals, pipelines |
+| `storage` | Files, buckets, CDN |
+| `communication` | Chat, SMS, notifications |
+| `other` | If nothing above fits |
+
+## 4. Build the resource documentation
+
+For EACH resource, create a table with every available command. Use the actual output from `--help` to get flags and descriptions.
+
+### Resource table format
+
+```markdown
+### <resource>
+
+| Command | Description |
+|---------|-------------|
+| `<app>-cli <resource> list --json` | List all <resource> |
+| `<app>-cli <resource> get <id> --json` | Get a <resource> by ID |
+| `<app>-cli <resource> create --<flag1> "value" --<flag2> "value" --json` | Create a <resource> |
+| `<app>-cli <resource> update <id> --<flag1> "value" --json` | Update a <resource> |
+| `<app>-cli <resource> delete <id> --json` | Delete a <resource> |
+```
+
+### Rules for resource tables
+
+1. **Run `--help` for every action** to get real flags — never guess
+2. **Include all available actions**, not just CRUD (e.g. `resolve-linkedin`, `upload`, `schedule-set`)
+3. **Show the most useful flag combinations** in examples — if an action has 5 optional flags, show the 2-3 most common ones
+4. **Every command example must include `--json`**
+5. **Include actual flags from `--help`**, not guessed ones
+6. **For commands with required args**, show them as `<arg-name>` positional params
+7. **For enum flags** (e.g. `--status scheduled|published|draft`), show one example per useful value if the resource has few actions, or the most common value if it has many
+
+### Example of a complete resource section
 
 ```markdown
 ### drafts
 
 | Command | Description |
 |---------|-------------|
-| `<app>-cli drafts list --json` | List all drafts |
-| `<app>-cli drafts get <id> --json` | Get a draft by ID |
-| `<app>-cli drafts create --text "Hello" --platform x --json` | Create a draft |
-| `<app>-cli drafts update <id> --text "Updated" --json` | Update a draft |
-| `<app>-cli drafts delete <id> --json` | Delete a draft |
-
-### accounts
-
-| Command | Description |
-|---------|-------------|
-| `<app>-cli accounts list --json` | List all accounts |
-| `<app>-cli accounts get <id> --json` | Get account details |
+| `app-cli drafts list <social-set-id> --json` | List all drafts |
+| `app-cli drafts list <social-set-id> --status scheduled --json` | List scheduled drafts |
+| `app-cli drafts list <social-set-id> --tags marketing --json` | List drafts by tag |
+| `app-cli drafts get <social-set-id> <draft-id> --json` | Get a draft by ID |
+| `app-cli drafts create <social-set-id> --text "Hello!" --platform x,linkedin --json` | Create a draft |
+| `app-cli drafts create <social-set-id> --text "Now!" --publish-at now --json` | Create and publish immediately |
+| `app-cli drafts update <social-set-id> <draft-id> --text "Updated" --json` | Update draft text |
+| `app-cli drafts delete <social-set-id> <draft-id> --json` | Delete a draft |
 ```
 
-## 3. Symlink skill to agent directories
+## 5. Include the Quick Reference and Output Format sections
+
+Always include these two sections so the agent knows how to discover detailed flags and parse responses:
+
+**Quick Reference** — so the agent can run `--help` at runtime for flags not listed in the skill:
+
+    ## Quick Reference
+
+    ```bash
+    <app>-cli --help                    # List all resources and global flags
+    <app>-cli <resource> --help         # List all actions for a resource
+    <app>-cli <resource> <action> --help # Show flags for a specific action
+    ```
+
+**Output Format** — so the agent knows how to parse the JSON response:
+
+    ## Output Format
+
+    `--json` returns a standardized envelope:
+    ```json
+    { "ok": true, "data": { ... }, "meta": { "total": 42 } }
+    ```
+
+    On error: `{ "ok": false, "error": { "message": "...", "status": 401 } }`
+
+## 6. Update the README
+
+Edit `~/.cli/<app>-cli/README.md`:
+
+1. Replace `{{RESOURCES_HELP}}` with the same resource tables from step 4
+2. Replace `{{GITHUB_REPO}}` with the GitHub repo path (e.g. `Melvynx/typefully-cli`)
+
+## 7. Symlink skill to agent directories
 
 Symlink (not copy) so the skill stays in sync with the repo. Only symlink to agents that exist on the system.
 
@@ -61,10 +176,36 @@ ln -sf ~/.cli/<app>-cli/skills/<app>-cli/SKILL.md ~/.openclaw/workspace/skills/<
 
 Check if the agent directory exists before symlinking (e.g. `~/.claude/`, `~/.cursor/`).
 
-## Rules
+## 8. Validate the generated skill
 
-1. Run `<app>-cli --help` and `<resource> --help` to get actual commands and flags
-2. Only list resources that exist in the CLI
-3. Every command example must include `--json`
-4. Include actual flags from `--help`, not guessed ones
-5. Always include the auth setup section
+After writing the skill, verify it works end-to-end:
+
+```bash
+# Pick one resource and run a read command to confirm the skill's examples are correct
+<app>-cli <resource> list --json
+
+# Verify the output matches the documented format
+# Expected: { "ok": true, "data": [...], "meta": { ... } }
+```
+
+If the command fails or the output format differs, fix the skill before proceeding.
+
+## Quality checklist
+
+Before considering the skill done, verify:
+
+- [ ] Description lists ALL resources by name
+- [ ] Description includes domain-specific trigger phrases (not just the app name)
+- [ ] Description is written in third person
+- [ ] Category is set to a specific value (not `other` unless nothing fits)
+- [ ] Every resource from `<app>-cli --help` has its own table
+- [ ] Every action from `<resource> --help` has at least one row in the table
+- [ ] All flags come from actual `--help` output, not guesses
+- [ ] Every command example includes `--json`
+- [ ] Quick Reference section with `--help` commands is present
+- [ ] Output Format section documents the JSON envelope
+- [ ] Auth section shows `set`, `test` commands
+- [ ] No `{{...}}` placeholders remain in the file
+- [ ] No `<!-- TODO -->` comments remain in the file
+- [ ] At least one command was tested to verify the skill is accurate
+- [ ] SKILL.md is under 500 lines

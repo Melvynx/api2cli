@@ -1,7 +1,7 @@
 ---
 name: {{APP_NAME}}
-description: "Manage {{APP_NAME}} via CLI. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
-category: other
+description: "Manage {{APP_NAME}} via CLI - {{RESOURCES_LIST}}. Use when user mentions '{{APP_NAME}}' or wants to interact with the {{APP_NAME}} API."
+category: {{CATEGORY}}
 ---
 
 # {{APP_CLI}}
@@ -26,10 +26,33 @@ Always use `--json` flag when calling commands programmatically.
 {{APP_CLI}} auth test
 ```
 
+Auth commands: `auth set <token>`, `auth show`, `auth remove`, `auth test`
+
+Token is stored in `~/.config/tokens/{{APP_CLI}}.txt`.
+
 ## Resources
 
-<!-- TODO: Add resource documentation after building your CLI -->
+{{RESOURCES_HELP}}
+
+## Output Format
+
+`--json` returns a standardized envelope:
+```json
+{ "ok": true, "data": { ... }, "meta": { "total": 42 } }
+```
+
+On error: `{ "ok": false, "error": { "message": "...", "status": 401 } }`
+
+## Quick Reference
+
+```bash
+{{APP_CLI}} --help                    # List all resources and global flags
+{{APP_CLI}} <resource> --help         # List all actions for a resource
+{{APP_CLI}} <resource> <action> --help # Show flags for a specific action
+```
 
 ## Global Flags
 
 All commands support: `--json`, `--format <text|json|csv|yaml>`, `--verbose`, `--no-color`, `--no-header`
+
+Exit codes: 0 = success, 1 = API error, 2 = usage error

@@ -50,9 +50,17 @@ npx api2cli link <app>
 
 ### 5. Finalize skill and README
 
-Replace all `{{...}}` placeholders in `skills/<app>-cli/SKILL.md` and `README.md` with actual values, then symlink skill to agent directories.
+**This step is mandatory.** The skill must be fully populated with real command documentation — no placeholders, no TODOs.
 
-See [references/skill-generation.md](references/skill-generation.md) for the template, format, and symlink instructions.
+1. **Introspect the CLI**: run `<app>-cli --help`, then `<resource> --help` and `<resource> <action> --help` for every resource and action
+2. **Update the description**: list all resource names and add domain-specific trigger phrases
+3. **Set the category**: replace `{{CATEGORY}}` with the correct value (e.g. `social-media`, `email`, `devtools`)
+4. **Build resource tables**: for each resource, create a command table with every action and its real flags (from `--help` output)
+5. **Add Quick Reference + Output Format**: include `--help` commands and document the JSON envelope
+6. **Remove all placeholders**: no `{{...}}` or `<!-- TODO -->` should remain
+7. **Validate**: run at least one command to confirm the skill's examples are accurate
+
+See [references/skill-generation.md](references/skill-generation.md) for the full introspection workflow, format, quality checklist, and symlink instructions.
 
 To also link skills for OpenClaw:
 
