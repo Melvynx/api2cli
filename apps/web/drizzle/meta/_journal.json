@@ -15,6 +15,13 @@
       "when": 1772943398968,
       "tag": "0001_rapid_nighthawk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773083513502,
+      "tag": "0002_wild_karen_page",
+      "breakpoints": true
     }
   ]
 }

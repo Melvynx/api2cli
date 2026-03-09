@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { CopyMarkdownButton } from "@/components/copy-markdown-button";
 import { getDocSections } from "./doc-manager";
@@ -24,6 +25,7 @@ export default async function DocsLayout({
           </div>
         </main>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -12,7 +12,7 @@ export async function POST(_req: NextRequest, { params }: { params: Params }) {
     .update(skills)
     .set({ downloads: sql`${skills.downloads} + 1` })
     .where(eq(skills.name, name))
-    .returning({ downloads: skills.downloads });
+    .returning();
 
   if (result.length === 0) {
     return NextResponse.json(
@@ -21,5 +21,5 @@ export async function POST(_req: NextRequest, { params }: { params: Params }) {
     );
   }
 
-  return NextResponse.json({ ok: true, downloads: result[0].downloads });
+  return NextResponse.json({ ok: true, downloads: result[0]?.downloads });
 }

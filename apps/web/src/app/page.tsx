@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { db } from "@/db";
 import { skills } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { SponsorBar } from "@/components/sponsor-bar";
 import { AddCliDialog } from "@/components/add-cli-dialog";
 import { RegistryContent } from "@/components/registry-content";
 import {
@@ -107,13 +109,17 @@ export default async function Home() {
       <Navbar />
       <Hero />
 
+      <Suspense>
+        <SponsorBar />
+      </Suspense>
+
       <OpenClawSection />
       <HowItWorksSection />
       <CliVsMcpSection />
       <CliIsNewSkillSection />
       <UniversalSection />
 
-      <main className="mx-auto max-w-6xl flex-1 px-6 pb-24">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 pb-24">
         <section id="cli" className="pt-12">
           <div className="mb-6 flex items-end justify-between">
             <div>

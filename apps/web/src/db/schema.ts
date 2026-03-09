@@ -55,6 +55,28 @@ export interface ResourceDef {
   }[];
 }
 
+export const sponsors = pgTable("sponsors", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slot: integer("slot").notNull(),
+  name: text("name"),
+  logoUrl: text("logo_url"),
+  linkUrl: text("link_url"),
+  description: text("description"),
+  email: text("email").notNull(),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  editToken: text("edit_token").notNull().unique(),
+  active: boolean("active").default(false),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Sponsor = typeof sponsors.$inferSelect;
+export type NewSponsor = typeof sponsors.$inferInsert;
+
+export const SPONSOR_SLOTS = 4;
+
 export const CATEGORIES = [
   { value: "social", label: "Social Media", icon: "📱" },
   { value: "finance", label: "Finance & Banking", icon: "💰" },
