@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
-const INSTALL_CMD = "npx sundial-hub add melvynx/api2cli";
+const INSTALL_CMD = "npx skills add melvynx/api2cli";
 
 export function Hero() {
   const [copied, setCopied] = useState(false);

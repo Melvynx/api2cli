@@ -752,7 +752,7 @@ export function UniversalSection() {
 }
 
 /* ─── FINAL CTA ─── */
-const CTA_CMD = "npx sundial-hub add melvynx/api2cli";
+const CTA_CMD = "npx skills add melvynx/api2cli";
 
 export function FinalCtaSection() {
   const { ref, inView } = useInView(0.1);
