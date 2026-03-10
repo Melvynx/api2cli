@@ -113,7 +113,7 @@ export function OpenClawSection() {
               your competitors.
             </p>
 
-            <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
+            <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-emerald-500" />
                 <span>
@@ -128,6 +128,14 @@ export function OpenClawSection() {
                 </span>
               </div>
             </div>
+
+            <Link
+              href="/docs/openclaw"
+              className="mt-6 inline-flex items-center gap-1.5 font-mono text-sm text-[#D54747] transition-opacity hover:opacity-80"
+            >
+              View OpenClaw docs
+              <span aria-hidden="true">&rarr;</span>
+            </Link>
           </div>
 
           {/* Right: Terminal animation */}

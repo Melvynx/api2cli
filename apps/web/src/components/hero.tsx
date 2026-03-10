@@ -52,21 +52,21 @@ export function Hero() {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              Open Source CLI Marketplace
+              The CLI Registry for AI Agents
             </span>
           </div>
 
           <h1 className="font-[family-name:var(--font-geist-pixel-square)] text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Superpower your agents
+            If it has an API,
             <br />
             <span className="bg-gradient-to-r from-[#D54747] to-[#FF8A65] bg-clip-text text-transparent">
-              with tailor made CLI.
+              it should have a CLI.
             </span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Install the skill once. Tell your agent which API you need.
-            Get a standardized, agent-ready CLI in minutes.
+            The open-source registry of standardized, agent-ready CLIs.
+            One install. Every API. Any agent.
           </p>
 
           {/* CTAs + Install command */}
