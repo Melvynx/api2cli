@@ -99,7 +99,7 @@ function guessCategory(
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { githubUrl, category: bodyCategory, installCommand, skillGithubPath } = body;
+    const { githubUrl, category: bodyCategory, installCommand, skillGithubPath, skillPath } = body;
 
     if (!githubUrl) {
       return NextResponse.json(
@@ -141,10 +141,14 @@ export async function POST(request: Request) {
     // Fetch README for description extraction
     const readme = await fetchRawFile(owner, repo, "README.md");
 
-    // Fetch SKILL.md if it exists (check root first, then skills/<repo>/)
-    let skillMd = await fetchRawFile(owner, repo, "SKILL.md");
-    if (!skillMd) {
-      skillMd = await fetchRawFile(owner, repo, `skills/${repo}/SKILL.md`);
+    let skillMd: string | null = null;
+    if (skillPath) {
+      skillMd = await fetchRawFile(owner, repo, skillPath);
+    } else {
+      skillMd = await fetchRawFile(owner, repo, "SKILL.md");
+      if (!skillMd) {
+        skillMd = await fetchRawFile(owner, repo, `skills/${repo}/SKILL.md`);
+      }
     }
 
     // Extract description: prefer SKILL.md frontmatter > repo description > package.json
@@ -155,20 +159,25 @@ export async function POST(request: Request) {
 
     let skillCategory: string | null = null;
 
+    let frontmatterInstallCmd: string | null = null;
     if (skillMd) {
       const frontmatterMatch = skillMd.match(/^---\n([\s\S]*?)\n---/);
       if (frontmatterMatch) {
         const nameMatch = frontmatterMatch[1].match(/name:\s*(.+)/);
         const descMatch = frontmatterMatch[1].match(/description:\s*(.+)/);
         const catMatch = frontmatterMatch[1].match(/category:\s*(.+)/);
-        if (nameMatch) skillName = nameMatch[1].trim();
+        const installMatch = frontmatterMatch[1].match(/install_command:\s*(.+)/);
+        if (nameMatch) skillName = nameMatch[1].trim().replace(/^["']|["']$/g, "");
         if (descMatch) description = descMatch[1].trim();
         if (catMatch) {
           const cat = catMatch[1].trim().toLowerCase();
           if (VALID_CATEGORIES.includes(cat)) skillCategory = cat;
         }
+        if (installMatch) frontmatterInstallCmd = installMatch[1].trim().replace(/^["']|["']$/g, "");
       }
     }
+
+    const resolvedInstallCommand = installCommand || frontmatterInstallCmd;
 
     // Resolve {{RESOURCES_LIST}} placeholder from src/resources/ directory
     if (description.includes("{{RESOURCES_LIST}}")) {
@@ -191,11 +200,13 @@ export async function POST(request: Request) {
     // Strip surrounding quotes from description if present
     description = description.replace(/^["']|["']$/g, "");
 
-    if (!skillName.endsWith("-cli")) {
+    if (!resolvedInstallCommand && !skillName.endsWith("-cli")) {
       skillName = `${skillName}-cli`;
     }
 
-    const displayName = (repoData.name || repo).replace(/(-cli)+$/, "-cli");
+    const displayName = resolvedInstallCommand
+      ? skillName
+      : (repoData.name || repo).replace(/(-cli)+$/, "-cli");
 
     // Determine category: body > SKILL.md frontmatter > guessCategory
     const topics: string[] = repoData.topics || [];
@@ -236,7 +247,7 @@ export async function POST(request: Request) {
       authorName: repoData.owner?.login || owner,
       tags,
       verified: false,
-      ...(installCommand && { skillType: "public", installCommand }),
+      ...(resolvedInstallCommand && { skillType: "public" as const, installCommand: resolvedInstallCommand }),
       ...(skillGithubPath && { skillGithubPath }),
     };
 
