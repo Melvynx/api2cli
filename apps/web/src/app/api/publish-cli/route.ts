@@ -232,7 +232,8 @@ export async function POST(request: Request) {
       .where(eq(skills.name, skillName))
       .limit(1);
 
-    const tags = guessTags(description, topics, readme, skillMd, category, authType);
+    const tagsReadme = resolvedInstallCommand ? null : readme;
+    const tags = guessTags(description, topics, tagsReadme, skillMd, category, authType);
 
     const skillData = {
       name: skillName,
@@ -242,7 +243,7 @@ export async function POST(request: Request) {
       authType,
       version: packageJson?.version || "1.0.0",
       githubRepo: `https://github.com/${owner}/${repo}`,
-      readme: readme || null,
+      readme: resolvedInstallCommand ? (skillMd || null) : (readme || null),
       authorGithub: owner,
       authorName: repoData.owner?.login || owner,
       tags,
