@@ -1,10 +1,11 @@
 import { db } from "@/db";
 import { skills } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 // GET /api/tags — returns all unique tags with their count, sorted by frequency
 export async function GET() {
-  const allSkills = await db.select({ tags: skills.tags }).from(skills);
+  const allSkills = await db.select({ tags: skills.tags }).from(skills).where(eq(skills.visible, true));
 
   const tagCounts = new Map<string, number>();
   for (const skill of allSkills) {
