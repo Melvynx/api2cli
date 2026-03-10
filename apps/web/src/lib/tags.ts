@@ -72,6 +72,8 @@ const TAG_RULES: [RegExp, string][] = [
   [/map|geo|location|gps/, "geolocation"],
 ];
 
+const MAX_TAGS = 8;
+
 export function guessTags(
   description: string,
   topics: string[],
@@ -83,31 +85,25 @@ export function guessTags(
   const text = `${description} ${topics.join(" ")} ${readme ?? ""} ${skillMd ?? ""}`.toLowerCase();
   const tags = new Set<string>();
 
-  // Add category as a tag
   if (category && category !== "other") tags.add(category);
 
-  // Add GitHub topics as tags (filtered & normalized)
-  for (const topic of topics) {
-    const normalized = topic.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-    if (normalized.length > 1 && normalized.length < 30) {
-      tags.add(normalized);
-    }
-  }
-
-  // Match keyword rules
   for (const [pattern, tag] of TAG_RULES) {
     if (pattern.test(text)) tags.add(tag);
   }
 
-  // Add auth type tag
   if (authType === "oauth") tags.add("oauth");
   if (authType === "api-key") tags.add("api-key");
 
-  // Add "open-source" if it's on GitHub
-  tags.add("open-source");
-
-  // Add "cli" tag always
   tags.add("cli");
 
-  return [...tags].slice(0, 15);
+  // Fill remaining slots with GitHub topics (lower priority)
+  for (const topic of topics) {
+    if (tags.size >= MAX_TAGS) break;
+    const normalized = topic.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    if (normalized.length > 1 && normalized.length < 30 && !tags.has(normalized)) {
+      tags.add(normalized);
+    }
+  }
+
+  return [...tags].slice(0, MAX_TAGS);
 }
