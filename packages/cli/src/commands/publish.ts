@@ -17,10 +17,14 @@ function askQuestion(question: string): Promise<string> {
 export async function publishToMarketplace(
   githubUrl: string,
   category?: string,
+  installCommand?: string,
+  skillGithubPath?: string,
 ): Promise<boolean> {
   try {
     const payload: Record<string, string> = { githubUrl };
     if (category) payload.category = category;
+    if (installCommand) payload.installCommand = installCommand;
+    if (skillGithubPath) payload.skillGithubPath = skillGithubPath;
 
     const res = await fetch(`${API_URL}/api/publish-cli`, {
       method: "POST",
@@ -58,16 +62,21 @@ export const publishCommand = new Command("publish")
   .argument("<app>", "CLI to publish")
   .option("--github <url>", "GitHub repo URL (e.g. user/repo)")
   .option("--category <cat>", `Category: ${VALID_CATEGORIES.join(", ")}`)
+  .option("--install-command <cmd>", "Custom install command for public CLIs")
+  .option("--skill-github-path <path>", "GitHub path to skill file")
   .addHelpText(
     "after",
-    `\nExamples:\n  api2cli publish typefully --github user/typefully-cli --category social\n  api2cli publish dub --category marketing`,
+    `\nExamples:\n  api2cli publish typefully --github user/typefully-cli --category social\n  api2cli publish dub --category marketing\n  api2cli publish vercel --github user/cli-skills --category devtools --install-command "npm i -g vercel"`,
   )
   .action(async (app: string, opts) => {
-    const cliDir = getCliDir(app);
+    const isPublic = !!opts.installCommand;
 
-    if (!existsSync(cliDir)) {
-      console.error(`${pc.red("✗")} ${app}-cli not found.`);
-      process.exit(1);
+    if (!isPublic) {
+      const cliDir = getCliDir(app);
+      if (!existsSync(cliDir)) {
+        console.error(`${pc.red("✗")} ${app}-cli not found.`);
+        process.exit(1);
+      }
     }
 
     let githubUrl = opts.github;
@@ -92,5 +101,5 @@ export const publishCommand = new Command("publish")
     console.log(
       `\nPublishing ${pc.bold(`${app}-cli`)} to marketplace...\n`,
     );
-    await publishToMarketplace(githubUrl, category);
+    await publishToMarketplace(githubUrl, category, opts.installCommand, opts.skillGithubPath);
   });
