@@ -31,6 +31,9 @@ export const skills = pgTable("skills", {
   authorGithub: text("author_github"),
   authorName: text("author_name"),
   tags: jsonb("tags").$type<string[]>().default([]),
+  skillType: text("skill_type").default("generated"),
+  installCommand: text("install_command"),
+  skillGithubPath: text("skill_github_path"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -99,7 +99,7 @@ function guessCategory(
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { githubUrl, category: bodyCategory } = body;
+    const { githubUrl, category: bodyCategory, installCommand, skillGithubPath } = body;
 
     if (!githubUrl) {
       return NextResponse.json(
@@ -236,6 +236,8 @@ export async function POST(request: Request) {
       authorName: repoData.owner?.login || owner,
       tags,
       verified: false,
+      ...(installCommand && { skillType: "public", installCommand }),
+      ...(skillGithubPath && { skillGithubPath }),
     };
 
     const isNew = existing.length === 0;

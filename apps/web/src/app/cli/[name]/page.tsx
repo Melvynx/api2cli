@@ -164,7 +164,7 @@ export default async function CliDetailPage({ params }: { params: Params }) {
           </h2>
           <pre className="rounded-xl border border-border bg-card p-4 font-mono text-sm">
             <span className="text-muted-foreground">$ </span>
-            {`npx api2cli install ${skill.name}`}
+            {skill.installCommand || `npx api2cli install ${skill.name}`}
           </pre>
         </section>
 
@@ -174,6 +174,10 @@ export default async function CliDetailPage({ params }: { params: Params }) {
             Details
           </h2>
           <div className="grid gap-3 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-2">
+            <div>
+              <span className="text-muted-foreground">Skill type: </span>
+              <span className="font-mono">{skill.skillType === "public" ? "Public CLI" : "Generated CLI"}</span>
+            </div>
             {skill.authType && (
               <div>
                 <span className="text-muted-foreground">Auth type: </span>
