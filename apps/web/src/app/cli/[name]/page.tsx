@@ -164,7 +164,7 @@ export default async function CliDetailPage({ params }: { params: Params }) {
           </h2>
           <pre className="rounded-xl border border-border bg-card p-4 font-mono text-sm">
             <span className="text-muted-foreground">$ </span>
-            {skill.installCommand || `npx api2cli install ${skill.name}`}
+            {`npx api2cli install ${skill.name}`}
           </pre>
         </section>
 

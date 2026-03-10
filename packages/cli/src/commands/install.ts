@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { existsSync, mkdirSync, readdirSync, symlinkSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, symlinkSync, unlinkSync, writeFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import pc from "picocolors";
@@ -26,6 +26,25 @@ function getAppName(repo: string): string {
   return repo.replace(/-cli$/, "");
 }
 
+function installSkillToAgentDirs(skillName: string, skillContent: string): void {
+  const agentDirs: { name: string; path: string }[] = [
+    { name: "Claude Code", path: join(homedir(), ".claude", "skills") },
+    { name: "Cursor", path: join(homedir(), ".cursor", "skills") },
+    { name: "OpenClaw", path: join(homedir(), ".openclaw", "workspace", "skills") },
+  ];
+
+  for (const agent of agentDirs) {
+    if (!existsSync(join(agent.path, ".."))) continue;
+
+    const skillDir = join(agent.path, skillName);
+    mkdirSync(skillDir, { recursive: true });
+
+    const target = join(skillDir, "SKILL.md");
+    writeFileSync(target, skillContent, "utf-8");
+    console.log(`  ${pc.green("+")} Skill installed for ${pc.dim(agent.name)}`);
+  }
+}
+
 function symlinkSkill(cliDir: string, appCli: string): void {
   const skillSource = join(cliDir, "skills", appCli, "SKILL.md");
   if (!existsSync(skillSource)) return;
@@ -49,17 +68,72 @@ function symlinkSkill(cliDir: string, appCli: string): void {
   }
 }
 
+async function fetchRawFile(owner: string, repo: string, path: string): Promise<string | null> {
+  for (const branch of ["main", "master"]) {
+    const res = await fetch(
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
+    );
+    if (res.ok) return res.text();
+  }
+  return null;
+}
+
+async function installPublicSkill(skillName: string, skill: {
+  installCommand: string;
+  skillGithubPath?: string;
+  githubRepo: string;
+  readme?: string;
+}): Promise<void> {
+  console.log(`\n${pc.bold("Installing skill")} ${pc.cyan(skillName)}...\n`);
+
+  // 1. Download SKILL.md from GitHub
+  let skillContent: string | null = null;
+  const repoParsed = parseGithubInput(skill.githubRepo);
+
+  if (repoParsed) {
+    const pathsToTry = [
+      skill.skillGithubPath,
+      `skills/${skillName}/SKILL.md`,
+      "SKILL.md",
+    ].filter(Boolean) as string[];
+
+    for (const path of pathsToTry) {
+      skillContent = await fetchRawFile(repoParsed.owner, repoParsed.repo, path);
+      if (skillContent) break;
+    }
+  }
+
+  if (!skillContent && skill.readme) {
+    skillContent = skill.readme;
+  }
+
+  if (skillContent) {
+    installSkillToAgentDirs(skillName, skillContent);
+  } else {
+    console.log(`  ${pc.yellow("!")} No SKILL.md found, skipping skill install`);
+  }
+
+  // 2. Show native install command
+  console.log(`\n${pc.green("+")} To install the CLI itself:\n`);
+  console.log(`  ${pc.cyan(`$ ${skill.installCommand}`)}\n`);
+
+  // Track install
+  fetch(`${REGISTRY_API}/skills/${skillName}/download`, { method: "POST" }).catch(() => {});
+
+  console.log(`${pc.green("✓")} Skill ${pc.bold(skillName)} installed`);
+}
+
 export const installCommand = new Command("install")
-  .description("Install a CLI from GitHub repo")
-  .argument("<source>", "GitHub repo (owner/repo) or app name from registry")
+  .description("Install a CLI from GitHub repo or the api2cli registry")
+  .argument("<source>", "App name from registry or GitHub repo (owner/repo)")
   .option("--force", "Overwrite existing CLI", false)
   .addHelpText(
     "after",
     `
 Examples:
-  api2cli install Melvynx/typefully-cli
-  api2cli install https://github.com/Melvynx/typefully-cli
-  api2cli install typefully`,
+  api2cli install gh
+  api2cli install vercel
+  api2cli install Melvynx/typefully-cli`,
   )
   .action(async (source: string, opts) => {
     let owner: string;
@@ -81,7 +155,20 @@ Examples:
           process.exit(1);
         }
         const data = await res.json();
-        const githubUrl = data.data?.githubRepo || data.githubRepo;
+        const skill = data.data;
+
+        // Public skill: download SKILL.md + show native install
+        if (skill?.skillType === "public" && skill?.installCommand) {
+          await installPublicSkill(source, {
+            installCommand: skill.installCommand,
+            skillGithubPath: skill.skillGithubPath,
+            githubRepo: skill.githubRepo,
+            readme: skill.readme,
+          });
+          return;
+        }
+
+        const githubUrl = skill?.githubRepo;
         if (!githubUrl) {
           console.error(`${pc.red("✗")} No GitHub repo found for ${source}.`);
           process.exit(1);
@@ -119,8 +206,6 @@ Examples:
     );
     const cloneCode = await clone.exited;
     if (cloneCode !== 0) {
-      const stderr = await new Response(clone.stderr).text();
-      // If dir exists (force), remove and retry
       if (opts.force) {
         Bun.spawn(["rm", "-rf", cliDir], { stdout: "ignore", stderr: "ignore" });
         await Bun.spawn(["rm", "-rf", cliDir]).exited;
@@ -135,6 +220,7 @@ Examples:
           process.exit(1);
         }
       } else {
+        const stderr = await new Response(clone.stderr).text();
         console.error(`${pc.red("✗")} Clone failed: ${stderr}`);
         process.exit(1);
       }
@@ -175,7 +261,7 @@ Examples:
     // 5. Symlink skill to agent directories
     symlinkSkill(cliDir, appCli);
 
-    // Track install in registry (skills are stored with -cli suffix)
+    // Track install in registry
     const trackName = skillName ?? (repo.endsWith("-cli") ? repo : `${repo}-cli`);
     fetch(`${REGISTRY_API}/skills/${trackName}/download`, { method: "POST" }).catch(
       () => {},

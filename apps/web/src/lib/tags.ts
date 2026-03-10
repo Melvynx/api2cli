@@ -1,41 +1,23 @@
 const TAG_RULES: [RegExp, string][] = [
-  // Platforms & services
-  [/twitter|tweet|x\.com/, "twitter"],
-  [/mastodon|fediverse/, "mastodon"],
-  [/bluesky|bsky/, "bluesky"],
-  [/instagram/, "instagram"],
-  [/linkedin/, "linkedin"],
-  [/threads/, "threads"],
-  [/youtube/, "youtube"],
-  [/slack/, "slack"],
-  [/discord/, "discord"],
-  [/telegram/, "telegram"],
-  [/github/, "github"],
-  [/vercel/, "vercel"],
-  [/cloudflare/, "cloudflare"],
-  [/aws|amazon web/, "aws"],
-  [/stripe/, "stripe"],
-  [/supabase/, "supabase"],
-  [/twilio/, "twilio"],
-  [/linear/, "linear"],
-
-  // Capabilities (high-signal only)
-  [/schedul|cron|recurring/, "scheduling"],
-  [/deploy|ci\/cd/, "deployment"],
-  [/email|newsletter/, "email"],
+  [/deploy|ci\/cd|release/, "deployment"],
+  [/database|sql|postgres|mongo|redis|drizzle|prisma/, "database"],
+  [/chat|messag|slack|discord|telegram/, "communication"],
+  [/storage|upload|file|s3|blob/, "storage"],
+  [/task|todo|note|calendar|time|bookmark/, "productivity"],
+  [/secret|vault|env.?var|password/, "secrets"],
+  [/email|newsletter|inbox/, "email"],
   [/payment|billing|invoice/, "payments"],
-  [/database|sql|postgres|mongo/, "database"],
-  [/chat|messag/, "messaging"],
-  [/dns|domain/, "dns"],
+  [/finance|bank|accounting/, "finance"],
+  [/ecommerce|shop|store|cart/, "ecommerce"],
+  [/dns|domain|ssl|certificate/, "dns"],
   [/container|docker/, "containers"],
   [/kubernetes|kubectl|k8s/, "kubernetes"],
-  [/secret|vault|env.?var/, "secrets"],
-
-  // Tech
   [/\bai\b|llm|gpt/, "ai"],
+  [/schedul|cron|recurring/, "scheduling"],
+  [/infrastructure|terraform/, "infrastructure"],
 ];
 
-const MAX_TAGS = 5;
+const MAX_TAGS = 4;
 
 export function guessTags(
   description: string,

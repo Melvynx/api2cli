@@ -18,7 +18,7 @@ export function SkillCard({
   const [copied, setCopied] = useState(false);
   const [upvotes, setUpvotes] = useState(skill.upvotes ?? 0);
   const [downvotes, setDownvotes] = useState(skill.downvotes ?? 0);
-  const installCmd = skill.installCommand || `npx api2cli install ${skill.name}`;
+  const installCmd = `npx api2cli install ${skill.name}`;
 
   const tags = ((skill.tags as string[]) ?? []).filter(
     (t) => !HIDDEN_TAGS.has(t)
