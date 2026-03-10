@@ -229,7 +229,7 @@ export default async function CliDetailPage({ params }: { params: Params }) {
             README
           </h2>
           {skill.readme ? (
-            <MarkdownRenderer content={skill.readme} />
+            <MarkdownRenderer content={skill.readme.replace(/^---\n[\s\S]*?\n---\n*/, "")} />
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
               No README found. Add a README.md to your repository and
