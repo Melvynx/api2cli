@@ -233,7 +233,7 @@ export async function POST(request: Request) {
       .limit(1);
 
     const tagsReadme = resolvedInstallCommand ? null : readme;
-    const tags = guessTags(description, topics, tagsReadme, skillMd, category, authType);
+    const tags = guessTags(description, topics, tagsReadme, skillMd, category);
 
     const skillData = {
       name: skillName,

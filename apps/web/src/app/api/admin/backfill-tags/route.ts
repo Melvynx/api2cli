@@ -15,15 +15,12 @@ export async function POST(req: NextRequest) {
   const results: { name: string; tags: string[] }[] = [];
 
   for (const skill of allSkills) {
-    const existingTags = (skill.tags as string[]) ?? [];
-    const text = `${skill.description ?? ""} ${skill.readme ?? ""}`;
     const newTags = guessTags(
-      text,
-      existingTags,
-      skill.readme,
+      skill.description ?? "",
+      [],
       null,
+      skill.readme,
       skill.category ?? undefined,
-      skill.authType ?? undefined,
     );
 
     await db
