@@ -232,8 +232,7 @@ export async function POST(request: Request) {
       .where(eq(skills.name, skillName))
       .limit(1);
 
-    const tagsReadme = resolvedInstallCommand ? null : readme;
-    const tags = guessTags(description, topics, tagsReadme, skillMd, category);
+    const tags = guessTags(description, topics, category);
 
     const skillData = {
       name: skillName,

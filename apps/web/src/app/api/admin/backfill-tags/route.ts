@@ -18,8 +18,6 @@ export async function POST(req: NextRequest) {
     const newTags = guessTags(
       skill.description ?? "",
       [],
-      null,
-      skill.readme,
       skill.category ?? undefined,
     );
 
