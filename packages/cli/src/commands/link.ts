@@ -5,12 +5,7 @@ import { join } from "path";
 import pc from "picocolors";
 import { getCliDir, getDistDir, CLI_ROOT } from "../lib/config.js";
 import { addToPath } from "../lib/shell.js";
-
-const AGENT_SKILL_DIRS: Record<string, string> = {
-  claude: join(homedir(), ".claude", "skills"),
-  cursor: join(homedir(), ".cursor", "skills"),
-  openclaw: join(homedir(), ".openclaw", "workspace", "skills"),
-};
+import { AGENT_DIRS } from "../lib/agents.js";
 
 function linkSkill(app: string, skillsPath: string): void {
   const cliDir = getCliDir(app);
@@ -45,7 +40,10 @@ Examples:
   api2cli link --all --openclaw`)
   .action((app: string | undefined, opts) => {
     const skillsPaths: string[] = [];
-    if (opts.openclaw) skillsPaths.push(AGENT_SKILL_DIRS.openclaw);
+    if (opts.openclaw) {
+      const openclaw = AGENT_DIRS.find((a) => a.name === "OpenClaw");
+      if (openclaw) skillsPaths.push(openclaw.path);
+    }
     if (opts.skillsPath) skillsPaths.push(opts.skillsPath.replace(/^~/, homedir()));
 
     if (opts.all || !app) {

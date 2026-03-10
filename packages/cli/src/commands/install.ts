@@ -1,10 +1,10 @@
 import { Command } from "commander";
-import { existsSync, mkdirSync, readdirSync, symlinkSync, unlinkSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from "fs";
 import { join } from "path";
-import { homedir } from "os";
 import pc from "picocolors";
 import { getCliDir, getDistDir } from "../lib/config.js";
 import { addToPath } from "../lib/shell.js";
+import { AGENT_DIRS } from "../lib/agents.js";
 
 const REGISTRY_API = "https://api2cli.dev/api";
 
@@ -22,58 +22,36 @@ function parseGithubInput(input: string): { owner: string; repo: string } | null
   return null;
 }
 
-function getAppName(repo: string): string {
-  return repo.replace(/-cli$/, "");
-}
-
-function installSkillToAgentDirs(skillName: string, skillContent: string): void {
-  const agentDirs: { name: string; path: string }[] = [
-    { name: "Claude Code", path: join(homedir(), ".claude", "skills") },
-    { name: "Cursor", path: join(homedir(), ".cursor", "skills") },
-    { name: "OpenClaw", path: join(homedir(), ".openclaw", "workspace", "skills") },
-  ];
-
-  for (const agent of agentDirs) {
+function writeSkillToAgentDirs(
+  skillName: string,
+  source: string | { symlinkFrom: string },
+): void {
+  for (const agent of AGENT_DIRS) {
     if (!existsSync(join(agent.path, ".."))) continue;
 
     const skillDir = join(agent.path, skillName);
     mkdirSync(skillDir, { recursive: true });
 
     const target = join(skillDir, "SKILL.md");
-    writeFileSync(target, skillContent, "utf-8");
+    if (typeof source === "string") {
+      writeFileSync(target, source, "utf-8");
+    } else {
+      if (existsSync(target)) unlinkSync(target);
+      symlinkSync(source.symlinkFrom, target);
+    }
     console.log(`  ${pc.green("+")} Skill installed for ${pc.dim(agent.name)}`);
   }
 }
 
-function symlinkSkill(cliDir: string, appCli: string): void {
-  const skillSource = join(cliDir, "skills", appCli, "SKILL.md");
-  if (!existsSync(skillSource)) return;
-
-  const agentDirs: { name: string; path: string }[] = [
-    { name: "Claude Code", path: join(homedir(), ".claude", "skills") },
-    { name: "Cursor", path: join(homedir(), ".cursor", "skills") },
-    { name: "OpenClaw", path: join(homedir(), ".openclaw", "workspace", "skills") },
-  ];
-
-  for (const agent of agentDirs) {
-    if (!existsSync(join(agent.path, ".."))) continue;
-
-    const skillDir = join(agent.path, appCli);
-    mkdirSync(skillDir, { recursive: true });
-
-    const target = join(skillDir, "SKILL.md");
-    if (existsSync(target)) unlinkSync(target);
-    symlinkSync(skillSource, target);
-    console.log(`  ${pc.green("+")} Skill symlinked for ${pc.dim(agent.name)}`);
-  }
-}
-
 async function fetchRawFile(owner: string, repo: string, path: string): Promise<string | null> {
-  for (const branch of ["main", "master"]) {
-    const res = await fetch(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
-    );
-    if (res.ok) return res.text();
+  const results = await Promise.allSettled(
+    ["main", "master"].map((branch) =>
+      fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`)
+        .then((r) => (r.ok ? r.text() : Promise.reject()))
+    ),
+  );
+  for (const r of results) {
+    if (r.status === "fulfilled") return r.value;
   }
   return null;
 }
@@ -86,7 +64,6 @@ async function installPublicSkill(skillName: string, skill: {
 }): Promise<void> {
   console.log(`\n${pc.bold("Installing skill")} ${pc.cyan(skillName)}...\n`);
 
-  // 1. Download SKILL.md from GitHub
   let skillContent: string | null = null;
   const repoParsed = parseGithubInput(skill.githubRepo);
 
@@ -108,16 +85,14 @@ async function installPublicSkill(skillName: string, skill: {
   }
 
   if (skillContent) {
-    installSkillToAgentDirs(skillName, skillContent);
+    writeSkillToAgentDirs(skillName, skillContent);
   } else {
     console.log(`  ${pc.yellow("!")} No SKILL.md found, skipping skill install`);
   }
 
-  // 2. Show native install command
   console.log(`\n${pc.green("+")} To install the CLI itself:\n`);
   console.log(`  ${pc.cyan(`$ ${skill.installCommand}`)}\n`);
 
-  // Track install
   fetch(`${REGISTRY_API}/skills/${skillName}/download`, { method: "POST" }).catch(() => {});
 
   console.log(`${pc.green("✓")} Skill ${pc.bold(skillName)} installed`);
@@ -157,7 +132,6 @@ Examples:
         const data = await res.json();
         const skill = data.data;
 
-        // Public skill: download SKILL.md + show native install
         if (skill?.skillType === "public" && skill?.installCommand) {
           await installPublicSkill(source, {
             installCommand: skill.installCommand,
@@ -186,7 +160,7 @@ Examples:
       }
     }
 
-    const app = getAppName(repo);
+    const app = repo.replace(/-cli$/, "");
     const appCli = `${app}-cli`;
     const cliDir = getCliDir(app);
 
@@ -207,8 +181,7 @@ Examples:
     const cloneCode = await clone.exited;
     if (cloneCode !== 0) {
       if (opts.force) {
-        Bun.spawn(["rm", "-rf", cliDir], { stdout: "ignore", stderr: "ignore" });
-        await Bun.spawn(["rm", "-rf", cliDir]).exited;
+        await Bun.spawn(["rm", "-rf", cliDir], { stdout: "ignore", stderr: "ignore" }).exited;
         const retry = Bun.spawn(
           ["git", "clone", "--depth", "1", `https://github.com/${owner}/${repo}.git`, cliDir],
           { stdout: "ignore", stderr: "pipe" },
@@ -229,12 +202,11 @@ Examples:
 
     // 2. Install dependencies
     console.log(`  ${pc.dim("Installing dependencies...")}`);
-    const install = Bun.spawn(["bun", "install"], {
+    await Bun.spawn(["bun", "install"], {
       cwd: cliDir,
       stdout: "ignore",
       stderr: "pipe",
-    });
-    await install.exited;
+    }).exited;
     console.log(`  ${pc.green("+")} Dependencies installed`);
 
     // 3. Build
@@ -258,14 +230,15 @@ Examples:
     // 4. Link to PATH
     addToPath(app, distDir);
 
-    // 5. Symlink skill to agent directories
-    symlinkSkill(cliDir, appCli);
+    // 5. Install skill to agent directories
+    const skillSource = join(cliDir, "skills", appCli, "SKILL.md");
+    if (existsSync(skillSource)) {
+      writeSkillToAgentDirs(appCli, { symlinkFrom: skillSource });
+    }
 
-    // Track install in registry
+    // Track install
     const trackName = skillName ?? (repo.endsWith("-cli") ? repo : `${repo}-cli`);
-    fetch(`${REGISTRY_API}/skills/${trackName}/download`, { method: "POST" }).catch(
-      () => {},
-    );
+    fetch(`${REGISTRY_API}/skills/${trackName}/download`, { method: "POST" }).catch(() => {});
 
     console.log(`\n${pc.green("✓")} Installed ${pc.bold(appCli)}`);
     console.log(`\n${pc.bold("Next:")}`);

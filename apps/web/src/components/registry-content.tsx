@@ -78,9 +78,7 @@ export function RegistryContent({
 
   const displayedSkills = results ?? initialSkills;
 
-  // Filter out generic tags for the filter bar, keep only meaningful ones
-  const HIDDEN_TAGS = new Set(["cli", "open-source"]);
-  const visibleTags = tags.filter((t) => !HIDDEN_TAGS.has(t.tag));
+  const visibleTags = tags;
 
   return (
     <>

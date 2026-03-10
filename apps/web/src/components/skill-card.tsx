@@ -6,8 +6,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Skill } from "@/db/schema";
 import Link from "next/link";
 
-const HIDDEN_TAGS = new Set(["cli", "open-source"]);
-
 export function SkillCard({
   skill,
   onTagClick,
@@ -19,10 +17,7 @@ export function SkillCard({
   const [upvotes, setUpvotes] = useState(skill.upvotes ?? 0);
   const [downvotes, setDownvotes] = useState(skill.downvotes ?? 0);
   const installCmd = `npx api2cli install ${skill.name}`;
-
-  const tags = ((skill.tags as string[]) ?? []).filter(
-    (t) => !HIDDEN_TAGS.has(t)
-  );
+  const tags = (skill.tags as string[]) ?? [];
 
   const copyInstall = (e: React.MouseEvent) => {
     e.preventDefault();

@@ -37,26 +37,22 @@ async function fetchGithub(path: string) {
   return res.json();
 }
 
-async function fetchRawFile(owner: string, repo: string, path: string) {
+async function fetchRawFile(owner: string, repo: string, path: string, defaultBranch?: string) {
   const headers: Record<string, string> = {
     "User-Agent": "api2cli-web",
   };
   if (GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
   }
-  const res = await fetch(
-    `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}`,
-    { headers }
-  );
-  if (!res.ok) {
-    const res2 = await fetch(
-      `https://raw.githubusercontent.com/${owner}/${repo}/master/${path}`,
-      { headers }
+  const branches = defaultBranch ? [defaultBranch] : ["main", "master"];
+  for (const branch of branches) {
+    const res = await fetch(
+      `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
+      { headers },
     );
-    if (!res2.ok) return null;
-    return res2.text();
+    if (res.ok) return res.text();
   }
-  return res.text();
+  return null;
 }
 
 const VALID_CATEGORIES = [
@@ -127,8 +123,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch package.json for version and name
-    const packageJsonStr = await fetchRawFile(owner, repo, "package.json");
+    const branch = repoData.default_branch || "main";
+
+    // Fetch package.json, README, and SKILL.md in parallel
+    const [packageJsonStr, readme, skillMdDirect] = await Promise.all([
+      fetchRawFile(owner, repo, "package.json", branch),
+      fetchRawFile(owner, repo, "README.md", branch),
+      skillPath
+        ? fetchRawFile(owner, repo, skillPath, branch)
+        : fetchRawFile(owner, repo, "SKILL.md", branch),
+    ]);
+
     let packageJson: Record<string, string> | null = null;
     if (packageJsonStr) {
       try {
@@ -138,17 +143,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fetch README for description extraction
-    const readme = await fetchRawFile(owner, repo, "README.md");
-
-    let skillMd: string | null = null;
-    if (skillPath) {
-      skillMd = await fetchRawFile(owner, repo, skillPath);
-    } else {
-      skillMd = await fetchRawFile(owner, repo, "SKILL.md");
-      if (!skillMd) {
-        skillMd = await fetchRawFile(owner, repo, `skills/${repo}/SKILL.md`);
-      }
+    let skillMd = skillMdDirect;
+    if (!skillMd && !skillPath) {
+      skillMd = await fetchRawFile(owner, repo, `skills/${repo}/SKILL.md`, branch);
     }
 
     // Extract description: prefer SKILL.md frontmatter > repo description > package.json

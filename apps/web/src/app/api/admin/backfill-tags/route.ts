@@ -7,7 +7,7 @@ import { guessTags } from "@/lib/tags";
 // POST /api/admin/backfill-tags — regenerate tags for all existing skills
 export async function POST(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret");
-  if (secret !== process.env.ADMIN_SECRET && secret !== "backfill-2024") {
+  if (secret !== process.env.ADMIN_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
