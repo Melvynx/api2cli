@@ -134,7 +134,15 @@ export default async function Home() {
             <AddCliDialog />
           </div>
 
-          <RegistryContent initialSkills={allSkills} />
+          <Suspense
+            fallback={
+              <div className="mt-6 rounded-2xl border border-border bg-card/50 p-6 text-sm text-muted-foreground">
+                Loading CLI registry...
+              </div>
+            }
+          >
+            <RegistryContent initialSkills={allSkills} />
+          </Suspense>
         </section>
       </main>
 
