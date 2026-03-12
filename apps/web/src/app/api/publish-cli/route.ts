@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { skills } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { normalizeSkillTags } from "@/lib/cli-kind";
 import { tweetNewCLI } from "@/lib/twitter";
 import { guessTags } from "@/lib/tags";
 
@@ -230,7 +231,11 @@ export async function POST(request: Request) {
       .where(eq(skills.name, skillName))
       .limit(1);
 
-    const tags = guessTags(description, topics, category);
+    const skillType = resolvedInstallCommand ? "public" : "generated";
+    const tags = normalizeSkillTags(
+      skillType,
+      guessTags(description, topics, category),
+    );
 
     const skillData = {
       name: skillName,
@@ -245,7 +250,8 @@ export async function POST(request: Request) {
       authorName: repoData.owner?.login || owner,
       tags,
       verified: false,
-      ...(resolvedInstallCommand && { skillType: "public" as const, installCommand: resolvedInstallCommand }),
+      skillType,
+      ...(resolvedInstallCommand && { installCommand: resolvedInstallCommand }),
       ...(skillGithubPath && { skillGithubPath }),
     };
 

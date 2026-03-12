@@ -5,6 +5,7 @@ import { parseAsString, useQueryStates } from "nuqs";
 import { Input } from "@/components/ui/input";
 import { SkillCard } from "@/components/skill-card";
 import type { Skill } from "@/db/schema";
+import type { RegistryCliType } from "@/lib/cli-kind";
 
 type ScoredSkill = Skill & { relevance?: number };
 type TagInfo = { tag: string; count: number };
@@ -17,33 +18,43 @@ export function RegistryContent({
   totalCount,
   initialQuery = "",
   initialTag = "all",
+  initialType = "all",
+  showTypeToggle = false,
 }: {
   initialSkills: Skill[];
   baseSkills?: Skill[];
   totalCount?: number;
   initialQuery?: string;
   initialTag?: string;
+  initialType?: RegistryCliType;
+  showTypeToggle?: boolean;
   categories?: { value: string; label: string; icon: string }[];
 }) {
-  const [{ query, tag: activeTag }, setFilters] = useQueryStates(
+  const [{ query, tag: activeTag, type: activeType }, setFilters] = useQueryStates(
     {
       query: parseAsString.withDefault(""),
       tag: parseAsString.withDefault("all"),
+      type: parseAsString.withDefault("all"),
     },
     {
       history: "replace",
       urlKeys: {
         query: "q",
         tag: "tag",
+        type: "type",
       },
     },
   );
-  const hasInitialFilters = initialQuery.trim().length > 0 || initialTag !== "all";
-  const matchesInitialFilters = query === initialQuery && activeTag === initialTag;
+  const hasInitialFilters =
+    initialQuery.trim().length > 0 || initialTag !== "all" || initialType !== "all";
+  const matchesInitialFilters =
+    query === initialQuery && activeTag === initialTag && activeType === initialType;
   const [results, setResults] = useState<ScoredSkill[] | null>(() =>
     hasInitialFilters && matchesInitialFilters ? initialSkills : null,
   );
-  const [loading, setLoading] = useState(() => Boolean(query) || activeTag !== "all");
+  const [loading, setLoading] = useState(
+    () => Boolean(query) || activeTag !== "all" || activeType !== "all",
+  );
   const [tags, setTags] = useState<TagInfo[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
@@ -66,11 +77,14 @@ export function RegistryContent({
   }, [baseSkills, hasInitialFilters, initialSkills, matchesInitialFilters, totalCount]);
 
   useEffect(() => {
-    fetch("/api/tags")
+    const params = new URLSearchParams();
+    if (activeType !== "all") params.set("type", activeType);
+
+    fetch(`/api/tags?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setTags(data.data ?? []))
       .catch(() => {});
-  }, []);
+  }, [activeType]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
@@ -80,6 +94,7 @@ export function RegistryContent({
         offset: String(paginatedSkills.length),
         limit: String(PAGE_SIZE),
       });
+      if (activeType !== "all") params.set("type", activeType);
       const res = await fetch(`/api/skills?${params.toString()}`);
       const data = await res.json();
       const newSkills: Skill[] = data.data ?? [];
@@ -90,7 +105,7 @@ export function RegistryContent({
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, paginatedSkills.length]);
+  }, [activeType, loadingMore, hasMore, paginatedSkills.length]);
 
   // IntersectionObserver for infinite scroll (only when not searching/filtering)
   useEffect(() => {
@@ -116,8 +131,9 @@ export function RegistryContent({
     async (q: string, tag: string) => {
       const hasQuery = q.trim().length > 0;
       const hasTag = tag !== "all";
+      const hasType = activeType !== "all";
 
-      if (!hasQuery && !hasTag) {
+      if (!hasQuery && !hasTag && !hasType) {
         searchAbortRef.current?.abort();
         searchRequestIdRef.current += 1;
         setResults(null);
@@ -135,6 +151,7 @@ export function RegistryContent({
         const params = new URLSearchParams();
         if (hasQuery) params.set("q", q.trim());
         if (hasTag) params.set("tag", tag);
+        if (hasType) params.set("type", activeType);
         const res = await fetch(`/api/skills?${params.toString()}`, {
           signal: abortController.signal,
         });
@@ -150,7 +167,7 @@ export function RegistryContent({
         setLoading(false);
       }
     },
-    []
+    [activeType]
   );
 
   const debouncedSearch = useCallback(
@@ -167,7 +184,7 @@ export function RegistryContent({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       searchAbortRef.current?.abort();
     };
-  }, [query, activeTag, debouncedSearch]);
+  }, [query, activeTag, activeType, debouncedSearch]);
 
   const handleTagClick = (tag: string) => {
     void setFilters({
@@ -217,6 +234,32 @@ export function RegistryContent({
         )}
       </div>
 
+      {showTypeToggle && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {[
+            { value: "all", label: "All CLIs" },
+            { value: "wrapper", label: "Wrapper CLI" },
+            { value: "official", label: "Official CLI" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() =>
+                void setFilters({
+                  type: option.value === "all" || activeType === option.value ? null : option.value,
+                })
+              }
+              className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                activeType === option.value
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Tags */}
       {visibleTags.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -257,6 +300,9 @@ export function RegistryContent({
             <p className="mt-4 font-mono text-sm text-muted-foreground">
               No CLIs found{query ? ` for "${query}"` : ""}
               {activeTag !== "all" ? ` with tag "${activeTag}"` : ""}
+              {activeType !== "all"
+                ? ` in ${activeType === "official" ? "Official CLI" : "Wrapper CLI"}`
+                : ""}
             </p>
             {query && (
               <p className="mt-2 text-sm text-muted-foreground">

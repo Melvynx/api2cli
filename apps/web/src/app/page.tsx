@@ -123,12 +123,12 @@ export default async function Home() {
         <section id="cli" className="pt-12">
           <div className="mb-6 flex items-end justify-between">
             <div>
-              <h2 className="font-[family-name:var(--font-geist-pixel-square)] text-2xl font-bold tracking-tight">
+              <h2 className="font-(family-name:--font-geist-pixel-square) text-2xl font-bold tracking-tight">
                 CLIs
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {allSkills.length} CLI{allSkills.length !== 1 ? "s" : ""}{" "}
-                built by the community
+                available in the registry
               </p>
             </div>
             <AddCliDialog />

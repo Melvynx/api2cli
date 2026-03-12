@@ -3,6 +3,7 @@ import { skills, type NewSkill } from "@/db/schema";
 import { eq, count as drizzleCount } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { normalizeSkillTags, type RegistryCliType } from "@/lib/cli-kind";
 import { tweetNewCLI } from "@/lib/twitter";
 import {
   getVisibleSkillsQuery,
@@ -17,15 +18,16 @@ export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("q");
   const category = req.nextUrl.searchParams.get("category");
   const tag = req.nextUrl.searchParams.get("tag");
+  const type = (req.nextUrl.searchParams.get("type") ?? "all") as RegistryCliType;
   const sort = (req.nextUrl.searchParams.get("sort") ?? "popular") as RegistrySort;
   const offset = Math.max(0, Number(req.nextUrl.searchParams.get("offset")) || 0);
   const limit = Math.min(50, Math.max(1, Number(req.nextUrl.searchParams.get("limit")) || DEFAULT_PAGE_SIZE));
 
-  const registryQuery = getVisibleSkillsQuery(category, sort);
+  const registryQuery = getVisibleSkillsQuery(category, type, sort);
 
   // For search & tag queries, fetch all then filter/score client-side
-  if ((query && query.trim()) || (tag && tag !== "all")) {
-    const filteredSkills = await searchRegistrySkills({ query, category, tag, sort });
+  if ((query && query.trim()) || (tag && tag !== "all") || type !== "all") {
+    const filteredSkills = await searchRegistrySkills({ query, category, tag, type, sort });
     return NextResponse.json({
       ok: true,
       data: filteredSkills,
@@ -55,8 +57,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as NewSkill;
+    const normalizedBody = {
+      ...body,
+      tags: normalizeSkillTags(body.skillType, (body.tags as string[] | undefined) ?? []),
+    } satisfies NewSkill;
 
-    if (!body.name || !body.displayName) {
+    if (!normalizedBody.name || !normalizedBody.displayName) {
       return NextResponse.json(
         { ok: false, error: "name and displayName are required" },
         { status: 400 }
@@ -67,22 +73,22 @@ export async function POST(req: NextRequest) {
     const existing = await db
       .select()
       .from(skills)
-      .where(eq(skills.name, body.name))
+      .where(eq(skills.name, normalizedBody.name))
       .limit(1);
 
     if (existing.length > 0) {
       const [updated] = await db
         .update(skills)
-        .set({ ...body, updatedAt: new Date() })
-        .where(eq(skills.name, body.name))
+        .set({ ...normalizedBody, updatedAt: new Date() })
+        .where(eq(skills.name, normalizedBody.name))
         .returning();
       revalidatePath("/");
       revalidatePath("/cli");
-      revalidatePath(`/cli/${body.name}`);
+      revalidatePath(`/cli/${normalizedBody.name}`);
       return NextResponse.json({ ok: true, data: updated });
     }
 
-    const [created] = await db.insert(skills).values(body).returning();
+    const [created] = await db.insert(skills).values(normalizedBody).returning();
 
     revalidatePath("/");
     revalidatePath("/cli");

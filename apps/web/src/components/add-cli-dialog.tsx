@@ -101,7 +101,9 @@ export function AddCliDialog() {
           onChange={(e) => setIsPublicCli(e.target.checked)}
           className="w-4 h-4 rounded border-border"
         />
-        <span className="text-muted-foreground">This is a public CLI (not api2cli-generated)</span>
+        <span className="text-muted-foreground">
+          This is an official CLI (not an api2cli-generated wrapper)
+        </span>
       </label>
 
       {isPublicCli && (

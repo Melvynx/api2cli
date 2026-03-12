@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { getCliTypeLabel } from "@/lib/cli-kind";
 import Link from "next/link";
 import { Metadata } from "next";
 
@@ -19,7 +20,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!skill) return { title: "Not Found - api2cli" };
   const desc =
     skill.description ||
-    `Install ${skill.displayName} CLI with npx api2cli install ${skill.name}`;
+    (skill.skillType === "public"
+      ? `Install the official ${skill.displayName} CLI with npx api2cli install ${skill.name}`
+      : `Install ${skill.displayName} wrapper CLI with npx api2cli install ${skill.name}`);
   return {
     title: `${skill.displayName} - api2cli`,
     description: desc,
@@ -58,7 +61,9 @@ export default async function CliDetailPage({ params }: { params: Params }) {
         name: skill.displayName,
         description:
           skill.description ||
-          `CLI wrapper for the ${skill.displayName} API`,
+          (skill.skillType === "public"
+            ? `Official CLI for ${skill.displayName}`
+            : `CLI wrapper for the ${skill.displayName} API`),
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS, Linux, Windows",
         url: `https://api2cli.dev/cli/${skill.name}`,
@@ -185,7 +190,7 @@ export default async function CliDetailPage({ params }: { params: Params }) {
           <div className="grid gap-3 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-2">
             <div>
               <span className="text-muted-foreground">Skill type: </span>
-              <span className="font-mono">{skill.skillType === "public" ? "Public CLI" : "Generated CLI"}</span>
+              <span className="font-mono">{getCliTypeLabel(skill.skillType)}</span>
             </div>
             {skill.authType && (
               <div>

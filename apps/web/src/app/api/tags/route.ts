@@ -1,11 +1,12 @@
-import { db } from "@/db";
-import { skills } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { type RegistryCliType } from "@/lib/cli-kind";
+import { getVisibleSkillsQuery } from "@/lib/registry-query";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 // GET /api/tags — returns all unique tags with their count, sorted by frequency
-export async function GET() {
-  const allSkills = await db.select({ tags: skills.tags }).from(skills).where(eq(skills.visible, true));
+export async function GET(req: NextRequest) {
+  const type = (req.nextUrl.searchParams.get("type") ?? "all") as RegistryCliType;
+  const allSkills = await getVisibleSkillsQuery(null, type);
 
   const tagCounts = new Map<string, number>();
   for (const skill of allSkills) {

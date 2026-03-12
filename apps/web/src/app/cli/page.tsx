@@ -1,11 +1,9 @@
-import { db } from "@/db";
-import { skills } from "@/db/schema";
-import { desc, eq, count as drizzleCount } from "drizzle-orm";
 import { Metadata } from "next";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { RegistryContent } from "@/components/registry-content";
-import { searchRegistrySkills } from "@/lib/registry-query";
+import { type RegistryCliType } from "@/lib/cli-kind";
+import { getVisibleSkillsQuery, searchRegistrySkills } from "@/lib/registry-query";
 
 export const revalidate = 60;
 
@@ -14,12 +12,12 @@ const INITIAL_PAGE_SIZE = 12;
 export const metadata: Metadata = {
   title: "CLIs - api2cli",
   description:
-    "Browse community-built CLI wrappers for REST APIs. Install any CLI in seconds with npx api2cli install.",
+    "Browse wrapper CLIs and official CLIs for developer tools and APIs. Install any CLI in seconds with npx api2cli install.",
   alternates: { canonical: "https://api2cli.dev/cli" },
   openGraph: {
     title: "CLIs - api2cli",
     description:
-      "Browse community-built CLI wrappers for REST APIs. Install any CLI in seconds.",
+      "Browse wrapper CLIs and official CLIs. Install any CLI in seconds.",
     url: "https://api2cli.dev/cli",
     type: "website",
   },
@@ -27,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CLIs - api2cli",
     description:
-      "Browse community-built CLI wrappers for REST APIs. Install any CLI in seconds.",
+      "Browse wrapper CLIs and official CLIs. Install any CLI in seconds.",
     creator: "@maboroshi_melvynx",
   },
 };
@@ -37,7 +35,7 @@ const jsonLd = {
   "@type": "CollectionPage",
   name: "CLIs - api2cli",
   description:
-    "Browse community-built CLI wrappers for REST APIs. Install any CLI in seconds.",
+    "Browse wrapper CLIs and official CLIs. Install any CLI in seconds.",
   url: "https://api2cli.dev/cli",
   isPartOf: {
     "@type": "WebSite",
@@ -49,6 +47,7 @@ const jsonLd = {
 type SearchParams = Promise<{
   q?: string;
   tag?: string;
+  type?: RegistryCliType;
 }>;
 
 export default async function CliListPage({
@@ -56,21 +55,15 @@ export default async function CliListPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { q = "", tag = "all" } = await searchParams;
-  const hasFilters = q.trim().length > 0 || tag !== "all";
+  const { q = "", tag = "all", type = "all" } = await searchParams;
+  const hasFilters = q.trim().length > 0 || tag !== "all" || type !== "all";
+  const baseQuery = getVisibleSkillsQuery(null, type).limit(INITIAL_PAGE_SIZE);
+  const countQuery = getVisibleSkillsQuery(null, type);
 
   const [[totalResult], baseSkills, filteredSkills] = await Promise.all([
-    db
-      .select({ count: drizzleCount() })
-      .from(skills)
-      .where(eq(skills.visible, true)),
-    db
-      .select()
-      .from(skills)
-      .where(eq(skills.visible, true))
-      .orderBy(desc(skills.downloads))
-      .limit(INITIAL_PAGE_SIZE),
-    hasFilters ? searchRegistrySkills({ query: q, tag }) : Promise.resolve(null),
+    countQuery.then((rows) => [{ count: rows.length }]),
+    baseQuery,
+    hasFilters ? searchRegistrySkills({ query: q, tag, type }) : Promise.resolve(null),
   ]);
 
   const initialSkills = filteredSkills ?? baseSkills;
@@ -90,7 +83,7 @@ export default async function CliListPage({
               CLIs
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              {totalCount} CLI{totalCount !== 1 ? "s" : ""} built by the community
+              {totalCount} CLI{totalCount !== 1 ? "s" : ""} available in the registry
             </p>
           </div>
 
@@ -100,6 +93,8 @@ export default async function CliListPage({
             totalCount={totalCount}
             initialQuery={q}
             initialTag={tag}
+            initialType={type}
+            showTypeToggle
           />
         </section>
       </main>

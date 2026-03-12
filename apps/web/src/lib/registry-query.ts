@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { skills, type Skill } from "@/db/schema";
 import { and, desc, eq } from "drizzle-orm";
+import { getSkillTypeForRegistryType, type RegistryCliType } from "@/lib/cli-kind";
 
 export type RegistrySort = "popular" | "votes" | "newest";
 export type RegistrySkillResult = Skill & { relevance?: number };
@@ -9,17 +10,27 @@ type SearchRegistrySkillsOptions = {
   query?: string | null;
   category?: string | null;
   tag?: string | null;
+  type?: RegistryCliType | null;
   sort?: RegistrySort;
 };
 
 export function getVisibleSkillsQuery(
   category?: string | null,
+  type?: RegistryCliType | null,
   sort: RegistrySort = "popular",
 ) {
+  const skillType = getSkillTypeForRegistryType(type);
   let query = db.select().from(skills).where(eq(skills.visible, true)).$dynamic();
 
-  if (category && category !== "all") {
-    query = query.where(and(eq(skills.visible, true), eq(skills.category, category)));
+  if ((category && category !== "all") || skillType) {
+    const filters = [eq(skills.visible, true)];
+    if (category && category !== "all") {
+      filters.push(eq(skills.category, category));
+    }
+    if (skillType) {
+      filters.push(eq(skills.skillType, skillType));
+    }
+    query = query.where(and(...filters));
   }
 
   if (sort === "popular") {
@@ -37,9 +48,10 @@ export async function searchRegistrySkills({
   query,
   category,
   tag,
+  type,
   sort = "popular",
 }: SearchRegistrySkillsOptions): Promise<RegistrySkillResult[]> {
-  let allSkills = await getVisibleSkillsQuery(category, sort);
+  let allSkills = await getVisibleSkillsQuery(category, type, sort);
 
   if (tag && tag !== "all") {
     allSkills = allSkills.filter((skill) => {

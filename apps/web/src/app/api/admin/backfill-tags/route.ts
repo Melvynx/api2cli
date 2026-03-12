@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { skills } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { normalizeSkillTags } from "@/lib/cli-kind";
 import { NextRequest, NextResponse } from "next/server";
 import { guessTags } from "@/lib/tags";
 
@@ -20,13 +21,14 @@ export async function POST(req: NextRequest) {
       [],
       skill.category ?? undefined,
     );
+    const normalizedTags = normalizeSkillTags(skill.skillType, newTags);
 
     await db
       .update(skills)
-      .set({ tags: newTags, updatedAt: new Date() })
+      .set({ tags: normalizedTags, updatedAt: new Date() })
       .where(eq(skills.name, skill.name));
 
-    results.push({ name: skill.name, tags: newTags });
+    results.push({ name: skill.name, tags: normalizedTags });
   }
 
   return NextResponse.json({
