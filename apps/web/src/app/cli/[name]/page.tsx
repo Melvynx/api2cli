@@ -17,15 +17,24 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { name } = await params;
   const [skill] = await db.select().from(skills).where(eq(skills.name, name)).limit(1);
   if (!skill) return { title: "Not Found - api2cli" };
+  const desc =
+    skill.description ||
+    `Install ${skill.displayName} CLI with npx api2cli install ${skill.name}`;
   return {
     title: `${skill.displayName} - api2cli`,
-    description: skill.description || `Install ${skill.displayName} CLI with npx api2cli install ${skill.name}`,
+    description: desc,
     alternates: { canonical: `https://api2cli.dev/cli/${skill.name}` },
     openGraph: {
       title: `${skill.displayName} - api2cli`,
-      description: skill.description || `Install ${skill.displayName} CLI`,
+      description: desc,
       url: `https://api2cli.dev/cli/${skill.name}`,
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${skill.displayName} - api2cli`,
+      description: desc,
+      creator: "@maboroshi_melvynx",
     },
   };
 }

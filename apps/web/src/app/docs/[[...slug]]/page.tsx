@@ -36,6 +36,14 @@ export async function generateMetadata(props: DocParams): Promise<Metadata> {
         description:
           "Complete guide to building agent-ready CLI wrappers for REST APIs.",
         url: "https://api2cli.dev/docs",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "api2cli Documentation",
+        description:
+          "Complete guide to building agent-ready CLI wrappers for REST APIs.",
+        creator: "@maboroshi_melvynx",
       },
     };
   }
@@ -53,6 +61,12 @@ export async function generateMetadata(props: DocParams): Promise<Metadata> {
       description: doc.attributes.description,
       type: "article",
       url: `https://api2cli.dev${doc.url}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${doc.attributes.title} - api2cli`,
+      description: doc.attributes.description,
+      creator: "@maboroshi_melvynx",
     },
   };
 }

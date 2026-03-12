@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { GeistPixelSquare } from "geist/font/pixel";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -67,8 +68,10 @@ export default function RootLayout({
       className={`dark ${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`}
     >
       <body className="antialiased grain">
-        <div className="aura" />
-        <div className="relative z-10">{children}</div>
+        <NuqsAdapter>
+          <div className="aura" />
+          <div className="relative z-10">{children}</div>
+        </NuqsAdapter>
       </body>
     </html>
   );

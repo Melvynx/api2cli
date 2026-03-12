@@ -6,6 +6,26 @@ category: {{CATEGORY}}
 
 # {{APP_CLI}}
 
+## When To Use This Skill
+
+Use the `{{APP_CLI}}` skill when you need to:
+
+{{WHEN_TO_USE_HELP}}
+
+## Capabilities
+
+Document the actual capabilities of `{{APP_CLI}}` after inspecting the generated commands.
+Prefer task-oriented bullets over endpoint names.
+
+{{CAPABILITIES_HELP}}
+
+## Common Use Cases
+
+Add concrete, domain-specific requests an agent could solve with this CLI.
+Keep them short and action-oriented.
+
+{{USE_CASES_HELP}}
+
 ## Setup
 
 If `{{APP_CLI}}` is not found, install and build it:
@@ -18,6 +38,12 @@ npx api2cli link {{APP_NAME}}
 `api2cli link` adds `~/.local/bin` to PATH automatically. The CLI is available in the next command.
 
 Always use `--json` flag when calling commands programmatically.
+
+## Working Rules
+
+- Always use `--json` for agent-driven calls so downstream steps can parse the result.
+- Start with `--help` if the exact action or flags are unclear instead of guessing.
+- Prefer read commands first when you need to inspect current state before mutating data.
 
 ## Authentication
 

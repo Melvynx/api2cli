@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { parseAsString, useQueryStates } from "nuqs";
 import { Input } from "@/components/ui/input";
 import { SkillCard } from "@/components/skill-card";
 import type { Skill } from "@/db/schema";
@@ -8,20 +9,62 @@ import type { Skill } from "@/db/schema";
 type ScoredSkill = Skill & { relevance?: number };
 type TagInfo = { tag: string; count: number };
 
+const PAGE_SIZE = 12;
+
 export function RegistryContent({
   initialSkills,
+  baseSkills = initialSkills,
+  totalCount,
+  initialQuery = "",
+  initialTag = "all",
 }: {
   initialSkills: Skill[];
+  baseSkills?: Skill[];
+  totalCount?: number;
+  initialQuery?: string;
+  initialTag?: string;
   categories?: { value: string; label: string; icon: string }[];
 }) {
-  const [query, setQuery] = useState("");
-  const [activeTag, setActiveTag] = useState("all");
-  const [results, setResults] = useState<ScoredSkill[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [{ query, tag: activeTag }, setFilters] = useQueryStates(
+    {
+      query: parseAsString.withDefault(""),
+      tag: parseAsString.withDefault("all"),
+    },
+    {
+      history: "replace",
+      urlKeys: {
+        query: "q",
+        tag: "tag",
+      },
+    },
+  );
+  const hasInitialFilters = initialQuery.trim().length > 0 || initialTag !== "all";
+  const matchesInitialFilters = query === initialQuery && activeTag === initialTag;
+  const [results, setResults] = useState<ScoredSkill[] | null>(() =>
+    hasInitialFilters && matchesInitialFilters ? initialSkills : null,
+  );
+  const [loading, setLoading] = useState(() => Boolean(query) || activeTag !== "all");
   const [tags, setTags] = useState<TagInfo[]>([]);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchRequestIdRef = useRef(0);
 
-  // Fetch tags dynamically
+  const [paginatedSkills, setPaginatedSkills] = useState<Skill[]>(baseSkills);
+  const [hasMore, setHasMore] = useState(
+    totalCount == null ? false : baseSkills.length < totalCount,
+  );
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setPaginatedSkills(baseSkills);
+    setHasMore(totalCount == null ? false : baseSkills.length < totalCount);
+    if (hasInitialFilters && matchesInitialFilters) {
+      setResults(initialSkills);
+      setLoading(false);
+    }
+  }, [baseSkills, hasInitialFilters, initialSkills, matchesInitialFilters, totalCount]);
+
   useEffect(() => {
     fetch("/api/tags")
       .then((res) => res.json())
@@ -29,28 +72,81 @@ export function RegistryContent({
       .catch(() => {});
   }, []);
 
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const params = new URLSearchParams({
+        offset: String(paginatedSkills.length),
+        limit: String(PAGE_SIZE),
+      });
+      const res = await fetch(`/api/skills?${params.toString()}`);
+      const data = await res.json();
+      const newSkills: Skill[] = data.data ?? [];
+      setPaginatedSkills((prev) => [...prev, ...newSkills]);
+      setHasMore(data.hasMore ?? false);
+    } catch {
+      // silently fail, user can scroll again
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, paginatedSkills.length]);
+
+  // IntersectionObserver for infinite scroll (only when not searching/filtering)
+  useEffect(() => {
+    if (results !== null) return; // search mode — no infinite scroll
+
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [results, loadMore]);
+
   const search = useCallback(
     async (q: string, tag: string) => {
       const hasQuery = q.trim().length > 0;
       const hasTag = tag !== "all";
 
       if (!hasQuery && !hasTag) {
+        searchAbortRef.current?.abort();
+        searchRequestIdRef.current += 1;
         setResults(null);
         setLoading(false);
         return;
       }
+
+      searchAbortRef.current?.abort();
+      const abortController = new AbortController();
+      searchAbortRef.current = abortController;
+      const requestId = ++searchRequestIdRef.current;
 
       setLoading(true);
       try {
         const params = new URLSearchParams();
         if (hasQuery) params.set("q", q.trim());
         if (hasTag) params.set("tag", tag);
-        const res = await fetch(`/api/skills?${params.toString()}`);
+        const res = await fetch(`/api/skills?${params.toString()}`, {
+          signal: abortController.signal,
+        });
         const data = await res.json();
+        if (requestId !== searchRequestIdRef.current) return;
         setResults(data.data ?? []);
-      } catch {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (requestId !== searchRequestIdRef.current) return;
         setResults([]);
       } finally {
+        if (requestId !== searchRequestIdRef.current) return;
         setLoading(false);
       }
     },
@@ -69,14 +165,18 @@ export function RegistryContent({
     debouncedSearch(query, activeTag);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      searchAbortRef.current?.abort();
     };
   }, [query, activeTag, debouncedSearch]);
 
   const handleTagClick = (tag: string) => {
-    setActiveTag(tag === activeTag ? "all" : tag);
+    void setFilters({
+      tag: tag === activeTag ? null : tag,
+    });
   };
 
-  const displayedSkills = results ?? initialSkills;
+  const displayedSkills = results ?? paginatedSkills;
+  const isSearchMode = results !== null;
 
   const visibleTags = tags;
 
@@ -104,7 +204,11 @@ export function RegistryContent({
           placeholder='Search CLIs... e.g. "schedule tweets" or "send emails"'
           className="h-12 rounded-xl border-border bg-card/60 pl-10 text-base placeholder:text-muted-foreground/50 focus-visible:ring-primary/30"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) =>
+            void setFilters({
+              query: e.target.value.trim().length > 0 ? e.target.value : null,
+            })
+          }
         />
         {loading && (
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
@@ -117,7 +221,7 @@ export function RegistryContent({
       {visibleTags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setActiveTag("all")}
+            onClick={() => void setFilters({ tag: null })}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
               activeTag === "all"
                 ? "bg-primary text-primary-foreground"
@@ -156,22 +260,31 @@ export function RegistryContent({
             </p>
             {query && (
               <p className="mt-2 text-sm text-muted-foreground">
-                This CLI doesn&apos;t exist yet. Be the first to create it!
+                This CLI doesn&apos;t exist yet. Ask your agent to create it.
               </p>
             )}
             <pre className="mx-auto mt-4 inline-block rounded-xl bg-muted px-5 py-3 font-mono text-xs text-muted-foreground">
-              npx api2cli create{" "}
-              {query
-                ? query.split(" ")[0]?.toLowerCase() ?? "my-api"
-                : "my-api"}
+              Ask your agent: &quot;Create a CLI for{" "}
+              {query ? query.trim() : "my API"}&quot;
             </pre>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedSkills.map((skill) => (
-              <SkillCard key={skill.id} skill={skill} onTagClick={handleTagClick} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {displayedSkills.map((skill) => (
+                <SkillCard key={skill.id} skill={skill} onTagClick={handleTagClick} />
+              ))}
+            </div>
+
+            {/* Infinite scroll sentinel */}
+            {!isSearchMode && hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-8">
+                {loadingMore && (
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

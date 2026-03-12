@@ -1,17 +1,23 @@
 import { ImageResponse } from "next/og";
+import {
+  loadOgFonts,
+  OG_SIZE,
+  OG_BG_GRADIENT,
+  OG_TITLE_GRADIENT,
+} from "@/lib/og-fonts";
 
-export const runtime = "edge";
 export const alt = "api2cli - Turn any API into an agent-ready CLI";
-export const size = { width: 1200, height: 630 };
+export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default function Image() {
+export default async function Image() {
+  const fonts = await loadOgFonts();
+
   return new ImageResponse(
     (
       <div
         style={{
-          fontSize: 40,
-          background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%)",
+          background: OG_BG_GRADIENT,
           color: "white",
           width: "100%",
           height: "100%",
@@ -20,7 +26,6 @@ export default function Image() {
           alignItems: "center",
           justifyContent: "center",
           padding: 80,
-          fontFamily: "system-ui, sans-serif",
         }}
       >
         <div
@@ -33,10 +38,10 @@ export default function Image() {
         >
           <div
             style={{
-              fontSize: 64,
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6)",
+              fontSize: 72,
+              fontFamily: "GeistPixel",
+              letterSpacing: "-0.02em",
+              background: OG_TITLE_GRADIENT,
               backgroundClip: "text",
               color: "transparent",
             }}
@@ -47,6 +52,7 @@ export default function Image() {
         <div
           style={{
             fontSize: 28,
+            fontFamily: "GeistBold",
             color: "#94a3b8",
             textAlign: "center",
             maxWidth: 800,
@@ -61,17 +67,21 @@ export default function Image() {
             gap: 24,
             marginTop: 48,
             fontSize: 18,
+            fontFamily: "GeistBold",
             color: "#64748b",
           }}
         >
           <span>Open Source</span>
-          <span>·</span>
+          <span style={{ color: "#4b5563" }}>·</span>
           <span>40+ AI Agents</span>
-          <span>·</span>
+          <span style={{ color: "#4b5563" }}>·</span>
           <span>Install in Seconds</span>
         </div>
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      fonts,
+    }
   );
 }

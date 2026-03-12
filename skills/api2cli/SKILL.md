@@ -50,15 +50,16 @@ npx api2cli link <app>
 
 ### 5. Finalize skill and README
 
-**This step is mandatory.** The skill must be fully populated with real command documentation — no placeholders, no TODOs.
+**This step is mandatory.** The skill must become a real operating guide for another agent, not just a command list — no placeholders, no TODOs.
 
 1. **Introspect the CLI**: run `<app>-cli --help`, then `<resource> --help` and `<resource> <action> --help` for every resource and action
 2. **Update the description**: list all resource names and add domain-specific trigger phrases
 3. **Set the category**: replace `{{CATEGORY}}` with the correct value (e.g. `social-media`, `email`, `devtools`)
-4. **Build resource tables**: for each resource, create a command table with every action and its real flags (from `--help` output)
-5. **Add Quick Reference + Output Format**: include `--help` commands and document the JSON envelope
-6. **Remove all placeholders**: no `{{...}}` or `<!-- TODO -->` should remain
-7. **Validate**: run at least one command to confirm the skill's examples are accurate
+4. **Write the task-oriented sections**: replace `{{WHEN_TO_USE_HELP}}`, `{{CAPABILITIES_HELP}}`, and `{{USE_CASES_HELP}}` with domain-specific guidance
+5. **Build resource tables**: for each resource, create a command table with every action and its real flags (from `--help` output)
+6. **Add Quick Reference + Output Format**: include `--help` commands and document the JSON envelope
+7. **Remove all placeholders**: no `{{...}}` or `<!-- TODO -->` should remain
+8. **Validate**: run at least one command to confirm the skill's examples are accurate
 
 See [references/skill-generation.md](references/skill-generation.md) for the full introspection workflow, format, quality checklist, and symlink instructions.
 

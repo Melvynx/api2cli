@@ -1,6 +1,6 @@
 # Finalize Skill and README
 
-After implementing resources, the skill MUST be fully populated with real command documentation. A skill with TODO placeholders or missing resources is incomplete — do not skip this step.
+After implementing resources, the skill MUST become a real operating guide for another agent, not just a command dump. A skill with TODO placeholders, shallow command lists, or missing resources is incomplete. Do not skip this step.
 
 ## 1. Introspect the CLI
 
@@ -79,7 +79,62 @@ Replace `{{CATEGORY}}` with the most fitting value:
 | `communication` | Chat, SMS, notifications |
 | `other` | If nothing above fits |
 
-## 4. Build the resource documentation
+## 4. Write the task-oriented sections first
+
+Before adding command tables, replace these three sections near the top of the scaffold:
+
+- `{{WHEN_TO_USE_HELP}}`
+- `{{CAPABILITIES_HELP}}`
+- `{{USE_CASES_HELP}}`
+
+These sections are what make the skill useful to an agent before it reaches the reference tables.
+
+### `When To Use This Skill`
+
+Write 4-6 bullets starting with `Use the <app>-cli skill when you need to...`
+
+Good bullets describe user intent, not implementation details:
+
+- list or inspect important data in the service
+- create, update, or delete records
+- trigger operational workflows or one-off actions
+- automate multi-step jobs using structured JSON output
+
+Bad bullets just restate resource names:
+
+- manage drafts
+- manage messages
+- manage inboxes
+
+### `Capabilities`
+
+Summarize what the CLI can actually do after introspection.
+Prefer task clusters over endpoint lists:
+
+- **Read operations**: list, get, search, filter, inspect status
+- **Write operations**: create, update, delete, archive, send, publish, trigger, or other domain actions
+- **Automation**: stable `--json` output for chaining with other tools
+- **Discovery**: `--help` works at CLI, resource, and action level
+
+If the API exposes special actions, call them out explicitly. Example:
+
+- "Resolve LinkedIn URLs before creating a social post"
+- "Send transactional email, inspect delivery state, and manage inboxes"
+- "Create invoices, inspect account balances, and trigger transfers"
+
+### `Common Use Cases`
+
+Add 3-6 short examples phrased like real requests an agent might receive.
+
+Example format:
+
+- "List the latest unread inbox messages and summarize what needs a reply."
+- "Create a draft from this text and schedule it for tomorrow."
+- "Fetch the latest invoices, then export the result as JSON for another tool."
+
+The goal is to teach the agent what the CLI is good at, not only what commands exist.
+
+## 5. Build the resource documentation
 
 For EACH resource, create a table with every available command. Use the actual output from `--help` to get flags and descriptions.
 
@@ -124,7 +179,7 @@ For EACH resource, create a table with every available command. Use the actual o
 | `app-cli drafts delete <social-set-id> <draft-id> --json` | Delete a draft |
 ```
 
-## 5. Include the Quick Reference and Output Format sections
+## 6. Include the Quick Reference and Output Format sections
 
 Always include these two sections so the agent knows how to discover detailed flags and parse responses:
 
@@ -149,14 +204,14 @@ Always include these two sections so the agent knows how to discover detailed fl
 
     On error: `{ "ok": false, "error": { "message": "...", "status": 401 } }`
 
-## 6. Update the README
+## 7. Update the README
 
 Edit `~/.cli/<app>-cli/README.md`:
 
-1. Replace `{{RESOURCES_HELP}}` with the same resource tables from step 4
+1. Replace `{{RESOURCES_HELP}}` with the same resource tables from step 5
 2. Replace `{{GITHUB_REPO}}` with the GitHub repo path (e.g. `Melvynx/typefully-cli`)
 
-## 7. Symlink skill to agent directories
+## 8. Symlink skill to agent directories
 
 Symlink (not copy) so the skill stays in sync with the repo. Only symlink to agents that exist on the system.
 
@@ -176,7 +231,7 @@ ln -sf ~/.cli/<app>-cli/skills/<app>-cli/SKILL.md ~/.openclaw/workspace/skills/<
 
 Check if the agent directory exists before symlinking (e.g. `~/.claude/`, `~/.cursor/`).
 
-## 8. Validate the generated skill
+## 9. Validate the generated skill
 
 After writing the skill, verify it works end-to-end:
 
@@ -198,6 +253,9 @@ Before considering the skill done, verify:
 - [ ] Description includes domain-specific trigger phrases (not just the app name)
 - [ ] Description is written in third person
 - [ ] Category is set to a specific value (not `other` unless nothing fits)
+- [ ] `When To Use This Skill` explains the jobs the CLI is good at
+- [ ] `Capabilities` summarizes real operations, not only resource names
+- [ ] `Common Use Cases` includes realistic, domain-specific agent tasks
 - [ ] Every resource from `<app>-cli --help` has its own table
 - [ ] Every action from `<resource> --help` has at least one row in the table
 - [ ] All flags come from actual `--help` output, not guesses

@@ -23,13 +23,13 @@ export function SearchResults({
           No CLI found for &quot;{query}&quot;
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          This CLI doesn&apos;t exist yet. Be the first to create it!
+          This CLI doesn&apos;t exist yet. Ask your agent to create it.
         </p>
         <button className="mt-4 inline-flex h-10 items-center rounded-xl bg-primary px-6 font-mono text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
-          Create this CLI →
+          Ask your agent to create it →
         </button>
         <pre className="mt-3 font-mono text-xs text-muted-foreground">
-          npx api2cli create {query.split(" ")[0]?.toLowerCase() ?? "my-api"}
+          Ask your agent: &quot;Create a CLI for {query.trim() || "my API"}&quot;
         </pre>
       </div>
     );

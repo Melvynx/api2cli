@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { skills } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -257,6 +258,10 @@ export async function POST(request: Request) {
     } else {
       await db.update(skills).set(skillData).where(eq(skills.name, skillName));
     }
+
+    revalidatePath("/");
+    revalidatePath("/cli");
+    revalidatePath(`/cli/${skillName}`);
 
     console.log("[publish-cli] isNew:", isNew, "skillName:", skillName);
     if (isNew) {

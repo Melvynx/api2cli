@@ -1,7 +1,4 @@
 import { ImageResponse } from "next/og";
-import { db } from "@/db";
-import { skills } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import {
   loadOgFonts,
   OG_SIZE,
@@ -9,26 +6,11 @@ import {
   OG_TITLE_GRADIENT,
 } from "@/lib/og-fonts";
 
-export const alt = "api2cli CLI detail";
+export const alt = "api2cli Documentation";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default async function Image({
-  params,
-}: {
-  params: Promise<{ name: string }>;
-}) {
-  const { name } = await params;
-  const [skill] = await db
-    .select()
-    .from(skills)
-    .where(eq(skills.name, name))
-    .limit(1);
-
-  const displayName = skill?.displayName ?? name;
-  const description =
-    skill?.description ?? `CLI wrapper for the ${name} API`;
-
+export default async function Image() {
   const fonts = await loadOgFonts();
 
   return new ImageResponse(
@@ -48,29 +30,48 @@ export default async function Image({
       >
         <div
           style={{
-            fontSize: 20,
-            fontFamily: "GeistBold",
-            color: "#64748b",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
             marginBottom: 16,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
           }}
         >
-          api2cli
+          <div
+            style={{
+              fontSize: 20,
+              fontFamily: "GeistBold",
+              color: "#64748b",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            api2cli
+          </div>
+          <div style={{ fontSize: 20, color: "#4b5563" }}>/</div>
+          <div
+            style={{
+              fontSize: 20,
+              fontFamily: "GeistBold",
+              color: "#818cf8",
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+            }}
+          >
+            docs
+          </div>
         </div>
         <div
           style={{
-            fontSize: 56,
+            fontSize: 64,
             fontFamily: "GeistPixel",
             letterSpacing: "-0.02em",
             background: OG_TITLE_GRADIENT,
             backgroundClip: "text",
             color: "transparent",
             textAlign: "center",
-            maxWidth: 900,
           }}
         >
-          {displayName}
+          Documentation
         </div>
         <div
           style={{
@@ -83,24 +84,7 @@ export default async function Image({
             marginTop: 24,
           }}
         >
-          {description.length > 120
-            ? description.slice(0, 117) + "..."
-            : description}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            marginTop: 48,
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 12,
-            padding: "16px 32px",
-            fontSize: 18,
-            fontFamily: "GeistMono",
-            color: "#94a3b8",
-          }}
-        >
-          npx api2cli install {name}
+          Complete guide to building agent-ready CLI wrappers for REST APIs.
         </div>
       </div>
     ),

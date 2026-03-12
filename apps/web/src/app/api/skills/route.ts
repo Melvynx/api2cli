@@ -1,67 +1,54 @@
 import { db } from "@/db";
 import { skills, type NewSkill } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, count as drizzleCount } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { tweetNewCLI } from "@/lib/twitter";
+import {
+  getVisibleSkillsQuery,
+  searchRegistrySkills,
+  type RegistrySort,
+} from "@/lib/registry-query";
 
-// GET /api/skills — list all skills, optional search
+const DEFAULT_PAGE_SIZE = 12;
+
+// GET /api/skills — list all skills, optional search + pagination
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get("q");
   const category = req.nextUrl.searchParams.get("category");
   const tag = req.nextUrl.searchParams.get("tag");
-  const sort = req.nextUrl.searchParams.get("sort") ?? "popular";
+  const sort = (req.nextUrl.searchParams.get("sort") ?? "popular") as RegistrySort;
+  const offset = Math.max(0, Number(req.nextUrl.searchParams.get("offset")) || 0);
+  const limit = Math.min(50, Math.max(1, Number(req.nextUrl.searchParams.get("limit")) || DEFAULT_PAGE_SIZE));
 
-  let q = db.select().from(skills).where(eq(skills.visible, true)).$dynamic();
+  const registryQuery = getVisibleSkillsQuery(category, sort);
 
-  if (category && category !== "all") {
-    q = q.where(and(eq(skills.visible, true), eq(skills.category, category)));
-  }
-
-  if (sort === "popular") {
-    q = q.orderBy(desc(skills.downloads));
-  } else if (sort === "votes") {
-    q = q.orderBy(desc(skills.upvotes));
-  } else if (sort === "newest") {
-    q = q.orderBy(desc(skills.createdAt));
-  }
-
-  let allSkills = await q.limit(100);
-
-  // Filter by tag
-  if (tag && tag !== "all") {
-    allSkills = allSkills.filter((skill) => {
-      const tags = (skill.tags as string[]) ?? [];
-      return tags.some((t) => t.toLowerCase() === tag.toLowerCase());
+  // For search & tag queries, fetch all then filter/score client-side
+  if ((query && query.trim()) || (tag && tag !== "all")) {
+    const filteredSkills = await searchRegistrySkills({ query, category, tag, sort });
+    return NextResponse.json({
+      ok: true,
+      data: filteredSkills,
+      hasMore: false,
+      total: filteredSkills.length,
     });
   }
 
-  // Search with relevance scoring
-  if (query && query.trim()) {
-    const terms = query.toLowerCase().split(/\s+/);
-    const scored = allSkills
-      .map((skill) => {
-        let score = 0;
-        const readmeLower = skill.readme?.toLowerCase() ?? "";
+  // Paginated query (no search/tag)
+  const [totalResult] = await db
+    .select({ count: drizzleCount() })
+    .from(skills)
+    .where(eq(skills.visible, true));
+  const total = totalResult?.count ?? 0;
 
-        for (const term of terms) {
-          if (skill.name.toLowerCase() === term) score += 50;
-          if (skill.displayName.toLowerCase().includes(term)) score += 30;
-          if (skill.description?.toLowerCase().includes(term)) score += 20;
-          if (skill.category?.toLowerCase().includes(term)) score += 15;
-          if ((skill.tags as string[] ?? []).some((t: string) => t.toLowerCase().includes(term)))
-            score += 25;
-          if (readmeLower.includes(term)) score += 10;
-        }
+  const pageSkills = await registryQuery.offset(offset).limit(limit);
 
-        return { ...skill, relevance: Math.min(score, 100) };
-      })
-      .filter((s) => s.relevance > 0)
-      .sort((a, b) => b.relevance - a.relevance);
-
-    return NextResponse.json({ ok: true, data: scored });
-  }
-
-  return NextResponse.json({ ok: true, data: allSkills });
+  return NextResponse.json({
+    ok: true,
+    data: pageSkills,
+    hasMore: offset + pageSkills.length < total,
+    total,
+  });
 }
 
 // POST /api/skills — publish a new skill
@@ -89,10 +76,17 @@ export async function POST(req: NextRequest) {
         .set({ ...body, updatedAt: new Date() })
         .where(eq(skills.name, body.name))
         .returning();
+      revalidatePath("/");
+      revalidatePath("/cli");
+      revalidatePath(`/cli/${body.name}`);
       return NextResponse.json({ ok: true, data: updated });
     }
 
     const [created] = await db.insert(skills).values(body).returning();
+
+    revalidatePath("/");
+    revalidatePath("/cli");
+    revalidatePath(`/cli/${created.name}`);
 
     console.log("[skills] new skill created, about to tweet:", created.name);
     try {
