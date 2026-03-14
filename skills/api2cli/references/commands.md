@@ -98,9 +98,32 @@ This is agent-driven: update resources in `<cli>/src/resources/` then rebuild.
 
 ## Registry Commands
 
+### search
+
+Search the api2cli registry before generating a new wrapper.
+
+```bash
+npx api2cli search <query> [--type <all|wrapper|official>] [--category <cat>] [--sort <popular|votes|newest>] [--limit <n>] [--json]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `<query>` | Search term (e.g. agentmail, email, vercel) | required |
+| `--type <type>` | Filter by CLI type | `all` |
+| `--category <cat>` | Filter by category | - |
+| `--sort <sort>` | Sort matches | `popular` |
+| `--limit <n>` | Max results shown | `10` |
+| `--json` | Output structured JSON results | `false` |
+
+```bash
+npx api2cli search agentmail
+npx api2cli search email --type wrapper
+npx api2cli search vercel --category devtools --json
+```
+
 ### install
 
-Install a CLI from a GitHub repo. Clones, builds, links to PATH, and symlinks the skill to agent directories.
+Install a CLI from a GitHub repo or from an app name found in the registry. Clones, builds, links to PATH, and symlinks the skill to agent directories.
 
 ```bash
 npx api2cli install <source> [--force]

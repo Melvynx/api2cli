@@ -16,7 +16,9 @@ export function SkillCard({
   const [copied, setCopied] = useState(false);
   const [upvotes, setUpvotes] = useState(skill.upvotes ?? 0);
   const [downvotes, setDownvotes] = useState(skill.downvotes ?? 0);
-  const installCmd = `npx api2cli install ${skill.name}`;
+  const installCmd = skill.authorGithub
+    ? `npx api2cli install ${skill.authorGithub}/${skill.name}`
+    : `npx api2cli install ${skill.name}`;
   const tags = (skill.tags as string[]) ?? [];
 
   const copyInstall = (e: React.MouseEvent) => {

@@ -36,6 +36,9 @@ api2cli create typefully \
 api2cli bundle typefully
 api2cli link typefully
 
+# Or search the registry first
+api2cli search typefully
+
 # Use it
 typefully-cli auth set "typ_xxx"
 typefully-cli drafts list
@@ -130,6 +133,7 @@ api2cli link <app>          # Add to PATH (updates .bashrc/.zshrc)
 | `api2cli remove <app> [--keep-token]` | Remove a CLI entirely |
 | `api2cli doctor` | Check system requirements |
 | `api2cli install <source> [--force]` | Install from GitHub repo or registry |
+| `api2cli search <query> [--type <type>] [--category <cat>] [--json]` | Search the api2cli registry |
 | `api2cli publish <app> [--github <url>] [--category <cat>]` | Publish to registry |
 | `api2cli update <app>` | Re-sync with API changes (agent-driven) |
 

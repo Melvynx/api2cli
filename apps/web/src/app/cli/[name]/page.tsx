@@ -18,11 +18,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { name } = await params;
   const [skill] = await db.select().from(skills).where(eq(skills.name, name)).limit(1);
   if (!skill) return { title: "Not Found - api2cli" };
+  const installRef = skill.authorGithub ? `${skill.authorGithub}/${skill.name}` : skill.name;
   const desc =
     skill.description ||
     (skill.skillType === "public"
-      ? `Install the official ${skill.displayName} CLI with npx api2cli install ${skill.name}`
-      : `Install ${skill.displayName} wrapper CLI with npx api2cli install ${skill.name}`);
+      ? `Install the official ${skill.displayName} CLI with npx api2cli install ${installRef}`
+      : `Install ${skill.displayName} wrapper CLI with npx api2cli install ${installRef}`);
   return {
     title: `${skill.displayName} - api2cli`,
     description: desc,
@@ -178,7 +179,9 @@ export default async function CliDetailPage({ params }: { params: Params }) {
           </h2>
           <pre className="rounded-xl border border-border bg-card p-4 font-mono text-sm">
             <span className="text-muted-foreground">$ </span>
-            {`npx api2cli install ${skill.name}`}
+            {skill.authorGithub
+              ? `npx api2cli install ${skill.authorGithub}/${skill.name}`
+              : `npx api2cli install ${skill.name}`}
           </pre>
         </section>
 

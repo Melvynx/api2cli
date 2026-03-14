@@ -11,6 +11,7 @@ import { removeCommand } from "./commands/remove.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { updateCommand } from "./commands/update.js";
 import { publishCommand } from "./commands/publish.js";
+import { searchCommand } from "./commands/search.js";
 
 const program = new Command();
 
@@ -36,6 +37,7 @@ program.addCommand(updateCommand);
 
 // Registry
 program.addCommand(installCommand);
+program.addCommand(searchCommand);
 program.addCommand(publishCommand);
 
 program.parse();
