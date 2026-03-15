@@ -250,6 +250,7 @@ export async function POST(request: Request) {
       authorName: repoData.owner?.login || owner,
       tags,
       verified: false,
+      visible: true,
       skillType,
       ...(resolvedInstallCommand && { installCommand: resolvedInstallCommand }),
       ...(skillGithubPath && { skillGithubPath }),
