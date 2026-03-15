@@ -6,11 +6,18 @@ import { Input } from "@/components/ui/input";
 import { SkillCard } from "@/components/skill-card";
 import type { Skill } from "@/db/schema";
 import type { RegistryCliType } from "@/lib/cli-kind";
+import type { RegistrySort } from "@/lib/registry-query";
 
 type ScoredSkill = Skill & { relevance?: number };
 type TagInfo = { tag: string; count: number };
 
 const PAGE_SIZE = 12;
+
+const SORT_OPTIONS: { value: RegistrySort; label: string }[] = [
+  { value: "popular", label: "Popular" },
+  { value: "votes", label: "Most Voted" },
+  { value: "newest", label: "Newest" },
+];
 
 export function RegistryContent({
   initialSkills,
@@ -19,6 +26,7 @@ export function RegistryContent({
   initialQuery = "",
   initialTag = "all",
   initialType = "all",
+  initialSort = "popular",
   showTypeToggle = false,
 }: {
   initialSkills: Skill[];
@@ -27,24 +35,29 @@ export function RegistryContent({
   initialQuery?: string;
   initialTag?: string;
   initialType?: RegistryCliType;
+  initialSort?: string;
   showTypeToggle?: boolean;
   categories?: { value: string; label: string; icon: string }[];
 }) {
-  const [{ query, tag: activeTag, type: activeType }, setFilters] = useQueryStates(
-    {
-      query: parseAsString.withDefault(""),
-      tag: parseAsString.withDefault("all"),
-      type: parseAsString.withDefault("all"),
-    },
-    {
-      history: "replace",
-      urlKeys: {
-        query: "q",
-        tag: "tag",
-        type: "type",
+  const [{ query, tag: activeTag, type: activeType, sort }, setFilters] =
+    useQueryStates(
+      {
+        query: parseAsString.withDefault(""),
+        tag: parseAsString.withDefault("all"),
+        type: parseAsString.withDefault("all"),
+        sort: parseAsString.withDefault("popular"),
       },
-    },
-  );
+      {
+        history: "replace",
+        urlKeys: {
+          query: "q",
+          tag: "tag",
+          type: "type",
+          sort: "sort",
+        },
+      },
+    );
+
   const hasInitialFilters =
     initialQuery.trim().length > 0 || initialTag !== "all" || initialType !== "all";
   const matchesInitialFilters =
@@ -86,6 +99,34 @@ export function RegistryContent({
       .catch(() => {});
   }, [activeType]);
 
+  // Re-fetch paginated data when sort changes (non-search mode only)
+  const sortInitRef = useRef(true);
+  useEffect(() => {
+    if (sortInitRef.current) {
+      sortInitRef.current = false;
+      return;
+    }
+    const hasQuery = query.trim().length > 0;
+    const hasTag = activeTag !== "all";
+    const hasType = activeType !== "all";
+    if (hasQuery || hasTag || hasType) return;
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
+    if (sort !== "popular") params.set("sort", sort);
+    if (activeType !== "all") params.set("type", activeType);
+
+    fetch(`/api/skills?${params.toString()}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        setPaginatedSkills(data.data ?? []);
+        setHasMore(data.hasMore ?? false);
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [sort, query, activeTag, activeType]);
+
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -95,6 +136,7 @@ export function RegistryContent({
         limit: String(PAGE_SIZE),
       });
       if (activeType !== "all") params.set("type", activeType);
+      if (sort !== "popular") params.set("sort", sort);
       const res = await fetch(`/api/skills?${params.toString()}`);
       const data = await res.json();
       const newSkills: Skill[] = data.data ?? [];
@@ -105,11 +147,10 @@ export function RegistryContent({
     } finally {
       setLoadingMore(false);
     }
-  }, [activeType, loadingMore, hasMore, paginatedSkills.length]);
+  }, [activeType, sort, loadingMore, hasMore, paginatedSkills.length]);
 
-  // IntersectionObserver for infinite scroll (only when not searching/filtering)
   useEffect(() => {
-    if (results !== null) return; // search mode — no infinite scroll
+    if (results !== null) return;
 
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -120,7 +161,7 @@ export function RegistryContent({
           loadMore();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
 
     observer.observe(sentinel);
@@ -152,6 +193,7 @@ export function RegistryContent({
         if (hasQuery) params.set("q", q.trim());
         if (hasTag) params.set("tag", tag);
         if (hasType) params.set("type", activeType);
+        if (sort !== "popular") params.set("sort", sort);
         const res = await fetch(`/api/skills?${params.toString()}`, {
           signal: abortController.signal,
         });
@@ -167,7 +209,7 @@ export function RegistryContent({
         setLoading(false);
       }
     },
-    [activeType]
+    [activeType, sort],
   );
 
   const debouncedSearch = useCallback(
@@ -175,7 +217,7 @@ export function RegistryContent({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => search(q, tag), 300);
     },
-    [search]
+    [search],
   );
 
   useEffect(() => {
@@ -184,23 +226,27 @@ export function RegistryContent({
       if (debounceRef.current) clearTimeout(debounceRef.current);
       searchAbortRef.current?.abort();
     };
-  }, [query, activeTag, activeType, debouncedSearch]);
+  }, [query, activeTag, activeType, sort, debouncedSearch]);
 
-  const handleTagClick = (tag: string) => {
-    void setFilters({
-      tag: tag === activeTag ? null : tag,
-    });
-  };
+  const handleTagClick = useCallback(
+    (tag: string) => {
+      void setFilters({
+        tag: tag === activeTag ? null : tag,
+      });
+    },
+    [activeTag, setFilters],
+  );
 
   const displayedSkills = results ?? paginatedSkills;
   const isSearchMode = results !== null;
-
-  const visibleTags = tags;
+  const visibleTags = tags.filter(({ tag }) => tag.toLowerCase() !== "official");
+  const hasActiveFilters =
+    query.trim().length > 0 || activeTag !== "all" || activeType !== "all";
 
   return (
-    <>
+    <div className="space-y-4">
       {/* Search */}
-      <div className="relative mb-6">
+      <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
           <svg
             className="h-5 w-5 text-muted-foreground"
@@ -234,38 +280,74 @@ export function RegistryContent({
         )}
       </div>
 
-      {showTypeToggle && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {[
-            { value: "all", label: "All CLIs" },
-            { value: "wrapper", label: "Wrapper CLI" },
-            { value: "official", label: "Official CLI" },
-          ].map((option) => (
-            <button
-              key={option.value}
-              onClick={() =>
-                void setFilters({
-                  type: option.value === "all" || activeType === option.value ? null : option.value,
-                })
-              }
-              className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                activeType === option.value
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+      {/* Controls: Type toggle + Sort + Count */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {showTypeToggle && (
+          <div className="flex rounded-lg bg-muted/50 p-1">
+            {[
+              { value: "all", label: "All CLIs" },
+              { value: "wrapper", label: "Wrapper" },
+              { value: "official", label: "Official" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() =>
+                  void setFilters({
+                    type:
+                      option.value === "all" || activeType === option.value
+                        ? null
+                        : option.value,
+                  })
+                }
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  activeType === option.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs tabular-nums text-muted-foreground sm:inline">
+            {displayedSkills.length}
+            {!isSearchMode && totalCount != null && totalCount > displayedSkills.length
+              ? ` of ${totalCount}`
+              : ""}{" "}
+            CLI{displayedSkills.length !== 1 ? "s" : ""}
+          </span>
+          <div className="hidden h-4 w-px bg-border sm:block" />
+          <div className="flex rounded-lg bg-muted/50 p-1">
+            {SORT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() =>
+                  void setFilters({
+                    sort: option.value === "popular" ? null : option.value,
+                  })
+                }
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  sort === option.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Tags */}
       {visibleTags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => void setFilters({ tag: null })}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
               activeTag === "all"
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -277,23 +359,40 @@ export function RegistryContent({
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
                 activeTag === tag
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               }`}
             >
               {tag}
-              <span className={`text-[10px] ${activeTag === tag ? "text-primary-foreground/70" : "text-muted-foreground/50"}`}>
+              <span
+                className={`text-[10px] ${
+                  activeTag === tag
+                    ? "text-primary-foreground/70"
+                    : "text-muted-foreground/50"
+                }`}
+              >
                 {count}
               </span>
             </button>
           ))}
+          {hasActiveFilters && (
+            <>
+              <div className="mx-1 h-6 w-px self-center bg-border" />
+              <button
+                onClick={() => void setFilters({ query: null, tag: null, type: null })}
+                className="rounded-full px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
         </div>
       )}
 
       {/* Results */}
-      <div className="mt-6">
+      <div className="pt-2">
         {displayedSkills.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card/50 py-20 text-center">
             <div className="text-4xl">🔍</div>
@@ -333,6 +432,6 @@ export function RegistryContent({
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

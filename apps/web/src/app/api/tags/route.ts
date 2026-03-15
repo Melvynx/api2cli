@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
 
   const sorted = [...tagCounts.entries()]
     .map(([tag, count]) => ({ tag, count }))
+    .filter(({ tag }) => tag.toLowerCase() !== "official")
     .sort((a, b) => b.count - a.count);
 
   return NextResponse.json({ ok: true, data: sorted });

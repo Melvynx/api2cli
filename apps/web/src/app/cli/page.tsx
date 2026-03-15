@@ -3,7 +3,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { RegistryContent } from "@/components/registry-content";
 import { type RegistryCliType } from "@/lib/cli-kind";
-import { getVisibleSkillsQuery, searchRegistrySkills } from "@/lib/registry-query";
+import { getVisibleSkillsQuery, searchRegistrySkills, type RegistrySort } from "@/lib/registry-query";
 
 export const revalidate = 60;
 
@@ -48,6 +48,7 @@ type SearchParams = Promise<{
   q?: string;
   tag?: string;
   type?: RegistryCliType;
+  sort?: string;
 }>;
 
 export default async function CliListPage({
@@ -55,15 +56,17 @@ export default async function CliListPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { q = "", tag = "all", type = "all" } = await searchParams;
+  const { q = "", tag = "all", type = "all", sort: rawSort = "popular" } = await searchParams;
+  const VALID_SORTS: RegistrySort[] = ["popular", "votes", "newest"];
+  const sort: RegistrySort = VALID_SORTS.includes(rawSort as RegistrySort) ? (rawSort as RegistrySort) : "popular";
   const hasFilters = q.trim().length > 0 || tag !== "all" || type !== "all";
-  const baseQuery = getVisibleSkillsQuery(null, type).limit(INITIAL_PAGE_SIZE);
+  const baseQuery = getVisibleSkillsQuery(null, type, sort).limit(INITIAL_PAGE_SIZE);
   const countQuery = getVisibleSkillsQuery(null, type);
 
   const [[totalResult], baseSkills, filteredSkills] = await Promise.all([
     countQuery.then((rows) => [{ count: rows.length }]),
     baseQuery,
-    hasFilters ? searchRegistrySkills({ query: q, tag, type }) : Promise.resolve(null),
+    hasFilters ? searchRegistrySkills({ query: q, tag, type, sort }) : Promise.resolve(null),
   ]);
 
   const initialSkills = filteredSkills ?? baseSkills;
@@ -94,6 +97,7 @@ export default async function CliListPage({
             initialQuery={q}
             initialTag={tag}
             initialType={type}
+            initialSort={sort}
             showTypeToggle
           />
         </section>

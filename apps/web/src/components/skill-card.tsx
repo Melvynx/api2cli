@@ -6,6 +6,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Skill } from "@/db/schema";
 import Link from "next/link";
 
+function timeAgo(date: Date | string | null | undefined): string {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 export function SkillCard({
   skill,
   onTagClick,
@@ -149,9 +165,14 @@ export function SkillCard({
                 ▼ {downvotes}
               </button>
             </div>
-            <span className={`font-mono font-medium ${popularityColor}`}>
-              {(skill.downloads ?? 0).toLocaleString()} installs
-            </span>
+            <div className="flex items-center gap-2">
+              {skill.createdAt && (
+                <span className="text-muted-foreground/60">{timeAgo(skill.createdAt)}</span>
+              )}
+              <span className={`font-mono font-medium ${popularityColor}`}>
+                {(skill.downloads ?? 0).toLocaleString()} installs
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
